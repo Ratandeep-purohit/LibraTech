@@ -1,0 +1,438 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Fees Collection{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Top Filter Section -->
+    <div class="glass-card p-6 rounded-2xl border border-white/5">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Academic Year</label>
+                <select id="acadYear"
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition [&>option]:bg-slate-900">
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2025-2026" selected>2025-2026</option>
+                </select>
+            </div>
+            <div class="md:col-span-2 relative">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Select Student (Search by
+                    Name/Roll/Enroll)</label>
+                <div class="relative">
+                    <i
+                        class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    <input type="text" id="studentSearch" placeholder="Start typing student details..."
+                        class="w-full bg-slate-900 border border-white/10 rounded-xl py-2 pr-3 pl-14 text-white focus:outline-none focus:border-indigo-500 transition"
+                        autocomplete="off">
+                </div>
+                <div id="searchSuggestions"
+                    class="absolute left-0 right-0 mt-1 bg-slate-800 border border-white/10 rounded-xl shadow-2xl z-50 hidden max-h-60 overflow-y-auto">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Fee Type</label>
+                <select id="feeType"
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition [&>option]:bg-slate-900">
+                    <option value="All">All</option>
+                    <option value="Academic">Academic Fees</option>
+                    <option value="Other">Other Fees</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Due Date</label>
+                <input type="date" id="filterDueDate"
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition">
+            </div>
+            <div>
+                <a href="{{ url_for('bulk_collection_import') }}"
+                    class="w-full h-11 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl hover:bg-emerald-600 hover:text-white transition flex items-center justify-center gap-2">
+                    <i class="fas fa-file-invoice-dollar"></i> Bulk Collection
+                </a>
+            </div>
+            <div>
+                <button onclick="loadStudentData()"
+                    class="w-full h-11 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-eye"></i> View Fees
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Quick Info (Visible after selection) -->
+    <div id="studentQuickInfo" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="glass-card p-4 rounded-xl border border-white/5 bg-indigo-500/5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase">Student Name</p>
+            <p class="text-sm font-bold text-white" id="infoName">-</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border border-white/5 bg-indigo-500/5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase">Enrollment / GR</p>
+            <p class="text-sm font-bold text-white font-mono" id="infoEnroll">-</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border border-white/5 bg-indigo-500/5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase">Program / Sem</p>
+            <p class="text-sm font-bold text-white" id="infoProg">-</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border border-white/5 bg-indigo-500/5">
+            <p class="text-[10px] font-bold text-slate-500 uppercase">Voucher ID</p>
+            <p class="text-sm font-bold text-indigo-400 font-mono" id="infoVoucher">AUTO-GEN</p>
+        </div>
+    </div>
+
+    <!-- Previous Collections Table -->
+    <div id="historySection" class="hidden space-y-4">
+        <div class="flex items-center justify-between">
+            <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fas fa-history text-indigo-400"></i> Previous Collections
+            </h4>
+        </div>
+        <div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-white/5 border-b border-white/10 text-slate-400 text-[10px] uppercase tracking-wider">
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Acad. Year</th>
+                            <th class="p-3">Roll No</th>
+                            <th class="p-3">Voucher Details</th>
+                            <th class="p-3">Fee Type</th>
+                            <th class="p-3">Payment Mode</th>
+                            <th class="p-3 text-right">Amount</th>
+                            <th class="p-3 text-right">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody" class="divide-y divide-white/5 text-sm">
+                        <!-- Populated by JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-indigo-500/10 text-white font-bold">
+                            <td colspan="6" class="p-3 text-right text-xs uppercase">Total Collected</td>
+                            <td id="totalHistory" class="p-3 text-right text-indigo-400">-</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amount Collect Section -->
+    <div id="collectSection" class="hidden space-y-6">
+        <h4 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fas fa-money-bill-wave text-green-400"></i> Amount Collect
+        </h4>
+
+        <div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+            <div class="overflow-x-auto">
+                <table id="feeTable" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-white/5 border-b border-white/10 text-slate-400 text-[10px] uppercase tracking-wider">
+                            <th class="p-4">Particular (Fee Name)</th>
+                            <th class="p-4">Due Date</th>
+                            <th class="p-4 text-right">Published</th>
+                            <th class="p-4 text-right">Collected</th>
+                            <th class="p-4 text-right">Payable</th>
+                            <th class="p-4 w-32">Discount</th>
+                            <th class="p-4 w-40">Collection Input</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feeBody" class="divide-y divide-white/5 text-sm">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Payment Form Details -->
+            <div class="p-6 bg-white/5 border-t border-white/10">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Summary Calculations -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-slate-400">
+                            <span>Total Payable:</span>
+                            <span class="text-white font-bold" id="summPayable">0.00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Late Fees:</span>
+                            <input type="number" id="lateFees" value="0"
+                                class="w-24 bg-slate-900 border border-white/10 rounded px-2 text-right text-white text-xs">
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Addl. Charges:</span>
+                            <input type="number" id="addlCharges" value="0"
+                                class="w-24 bg-slate-900 border border-white/10 rounded px-2 text-right text-white text-xs">
+                        </div>
+                        <div
+                            class="flex justify-between text-lg border-t border-white/10 pt-2 text-indigo-400 font-bold">
+                            <span>Net Collection:</span>
+                            <span id="summNet">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Mode -->
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mode</label>
+                                <select id="payMode"
+                                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500 [&>option]:bg-slate-900">
+                                    <option value="Cash">Cash</option>
+                                    <option value="UPI">UPI</option>
+                                    <option value="Online">Manual Online</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="Bank">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Receipt
+                                    Date</label>
+                                <input type="date" id="receiptDate" value="{{ now.strftime('%Y-%m-%d') }}"
+                                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ref ID / Cheque No
+                                / Trans. No</label>
+                            <input type="text" id="transNo" placeholder="Ref No..."
+                                class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white text-xs">
+                        </div>
+                    </div>
+
+                    <!-- Final Action -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Remarks</label>
+                            <textarea id="remarks" rows="2"
+                                class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white text-xs"
+                                placeholder="Narration..."></textarea>
+                        </div>
+                        <button onclick="savePayment()"
+                            class="w-full py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 shadow-lg shadow-green-500/20 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i> Save & Collect Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStudentId = null;
+    let feeData = [];
+
+    const searchInput = document.getElementById('studentSearch');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+
+    // Simple Debounce
+    function debounce(func, timeout = 300) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+
+    // Student Search Logic (Consistent with Apply Fees)
+    const searchStudents = async () => {
+        const query = searchInput.value;
+        if (query.length < 2) {
+            suggestionsBox.classList.add('hidden');
+            return;
+        }
+
+        const res = await fetch(`/api/search_users?q=${query}&role=student`);
+        const data = await res.json();
+
+        suggestionsBox.innerHTML = '';
+        if (data.length > 0) {
+            suggestionsBox.classList.remove('hidden');
+            data.forEach(user => {
+                const el = document.createElement('div');
+                el.className = 'p-3 hover:bg-indigo-500/20 cursor-pointer transition border-b border-white/5 last:border-0 flex items-center justify-between';
+                el.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-400">${user.full_name[0]}</div>
+                        <div>
+                            <div class="text-sm font-bold text-white">${user.full_name}</div>
+                            <div class="text-xs text-slate-400 font-mono">${user.username} | ${user.enrollment_number || 'No Enroll'}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-bold px-2 py-0.5 rounded bg-white/5">${user.program || 'N/A'}</span>
+                `;
+                el.onclick = () => {
+                    currentStudentId = user.id;
+                    searchInput.value = user.full_name;
+                    suggestionsBox.classList.add('hidden');
+                    loadStudentData();
+                };
+                suggestionsBox.appendChild(el);
+            });
+        }
+    };
+
+    searchInput.addEventListener('input', debounce(searchStudents));
+
+    async function loadStudentData() {
+        if (!currentStudentId) {
+            alert('Please select a student first.');
+            return;
+        }
+
+        const res = await fetch(`/api/student_fee_data/${currentStudentId}`);
+        const data = await res.json();
+
+        // Update Quick Info
+        document.getElementById('studentQuickInfo').classList.remove('hidden');
+        document.getElementById('infoName').innerText = data.student.full_name;
+        document.getElementById('infoEnroll').innerText = data.student.enrollment_number || 'N/A';
+        document.getElementById('infoProg').innerText = `${data.student.program || 'N/A'} (Sem: ${data.student.semester || '-'})`;
+
+        // Update History
+        const initialShowHistory = data.history.length > 0;
+        document.getElementById('historySection').classList.toggle('hidden', !initialShowHistory);
+        const historyBody = document.getElementById('historyBody');
+        historyBody.innerHTML = '';
+        let totalColl = 0;
+        data.history.forEach(h => {
+            totalColl += h.amount;
+            historyBody.innerHTML += `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="p-3 text-xs">${h.date}</td>
+                    <td class="p-3 text-xs">${h.acad_year}</td>
+                    <td class="p-3 font-mono text-xs text-slate-400">${h.roll_no}</td>
+                    <td class="p-3">
+                        <div class="text-xs font-bold text-indigo-400">${h.voucher_no}</div>
+                        <div class="text-[10px] text-slate-500">${h.ref_no}</div>
+                    </td>
+                    <td class="p-3"><span class="text-[10px] text-slate-400">${h.fee_type}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">${h.payment_mode}</span></td>
+                    <td class="p-3 text-right font-bold text-white">${h.amount.toFixed(2)}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="printReceipt(${h.id})" class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500 hover:text-white transition shadow-sm flex items-center gap-1 ml-auto">
+                            <i class="fas fa-file-invoice text-xs"></i> <span class="text-[10px] font-bold">Receipt</span>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        document.getElementById('totalHistory').innerText = totalColl.toFixed(2);
+
+        // Update Collection Items
+        feeData = data.pending_fees;
+        document.getElementById('collectSection').classList.remove('hidden');
+        const feeBody = document.getElementById('feeBody');
+        feeBody.innerHTML = '';
+
+        feeData.forEach((f, index) => {
+            feeBody.innerHTML += `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="p-4">
+                        <div class="font-bold text-white">${f.name}</div>
+                        <div class="text-[10px] text-slate-500">ID: ${f.id}</div>
+                    </td>
+                    <td class="p-4 text-xs text-slate-400">${f.due_date}</td>
+                    <td class="p-4 text-right text-slate-400">${f.amount.toFixed(2)}</td>
+                    <td class="p-4 text-right text-green-500/80">${f.collected.toFixed(2)}</td>
+                    <td class="p-4 text-right font-bold text-indigo-300" id="payable_${index}">${f.payable.toFixed(2)}</td>
+                    <td class="p-4">
+                        <input type="number" id="disc_${index}" value="0" step="0.01" oninput="calcTotal()" class="w-full bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white text-right">
+                    </td>
+                    <td class="p-4">
+                        <input type="number" id="coll_${index}" value="0" step="0.01" oninput="calcTotal()" class="w-full bg-slate-800 border-2 border-indigo-500/30 rounded-lg px-3 py-1.5 text-white text-right font-bold focus:border-indigo-500 outline-none">
+                    </td>
+                </tr>
+            `;
+        });
+        calcTotal();
+    }
+
+    function calcTotal() {
+        let totalPayable = 0;
+        let totalCollInput = 0;
+
+        feeData.forEach((f, index) => {
+            const discValue = parseFloat(document.getElementById(`disc_${index}`).value) || 0;
+            const collValue = parseFloat(document.getElementById(`coll_${index}`).value) || 0;
+
+            // Adjust payable preview
+            const currentPayable = Math.max(0, f.payable - discValue);
+            document.getElementById(`payable_${index}`).innerText = currentPayable.toFixed(2);
+
+            totalPayable += currentPayable;
+            totalCollInput += collValue;
+        });
+
+        const lFees = parseFloat(document.getElementById('lateFees').value) || 0;
+        const aCharges = parseFloat(document.getElementById('addlCharges').value) || 0;
+        const net = totalCollInput + lFees + aCharges;
+
+        document.getElementById('summPayable').innerText = totalPayable.toFixed(2);
+        document.getElementById('summNet').innerText = net.toFixed(2);
+    }
+
+    // Bind inputs that impact total but aren't in the fee loop
+    document.getElementById('lateFees').oninput = calcTotal;
+    document.getElementById('addlCharges').oninput = calcTotal;
+
+    async function savePayment() {
+        const netValue = parseFloat(document.getElementById('summNet').innerText);
+        if (netValue <= 0) {
+            alert('Collection amount must be greater than 0.');
+            return;
+        }
+
+        const feeItems = [];
+        feeData.forEach((f, index) => {
+            const coll = parseFloat(document.getElementById(`coll_${index}`).value) || 0;
+            const disc = parseFloat(document.getElementById(`disc_${index}`).value) || 0;
+            if (coll > 0 || disc > 0) {
+                feeItems.push({
+                    id: f.id,
+                    collected: coll,
+                    discount: disc
+                });
+            }
+        });
+
+        const payload = {
+            student_id: currentStudentId,
+            academic_year: document.getElementById('acadYear').value,
+            payment_mode: document.getElementById('payMode').value,
+            receipt_date: document.getElementById('receiptDate').value,
+            amount_paid: netValue,
+            late_fees: parseFloat(document.getElementById('lateFees').value) || 0,
+            additional_charges: parseFloat(document.getElementById('addlCharges').value) || 0,
+            bank_name: document.getElementById('transNo').value ? 'System Bank' : null, // Simplified
+            transaction_no: document.getElementById('transNo').value,
+            remarks: document.getElementById('remarks').value,
+            fee_items: feeItems
+        };
+
+        try {
+            const res = await fetch('/admin/fees/collect_payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                alert(`Payment successfully recorded! Voucher No: ${result.voucher_no}`);
+                // Open Receipt in new tab
+                window.open(`/admin/fees/receipt/${result.collection_id}`, '_blank');
+                window.location.reload();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (e) {
+            alert('An error occurred during submission.');
+            console.error(e);
+        }
+    }
+
+    function printReceipt(id) {
+        window.open(`/admin/fees/receipt/${id}`, '_blank');
+    }
+</script>
+{% endblock %}

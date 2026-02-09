@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Edit Student{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="glass-card rounded-2xl p-8 border border-white/5">
+        <h4 class="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">Edit Student Details</h4>
+
+        <form method="POST" action="{{ url_for('edit_student', user_id=student.id) }}" enctype="multipart/form-data">
+            <div class="mb-8 flex flex-col items-center">
+                <div class="relative group cursor-pointer">
+                    <div
+                        class="w-32 h-32 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center overflow-hidden group-hover:border-indigo-500 transition-colors">
+                        {% if student.profile_picture and student.profile_picture != 'default_user.jpg' %}
+                        <img id="preview"
+                            src="{{ url_for('static', filename='uploads/users/' + student.profile_picture) }}"
+                            class="w-full h-full object-cover">
+                        {% else %}
+                        <i
+                            class="fas fa-user-circle text-6xl text-slate-700 group-hover:text-indigo-400 transition-colors"></i>
+                        <img id="preview" class="hidden w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <label
+                        class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white cursor-pointer hover:bg-indigo-700 transition shadow-lg">
+                        <i class="fas fa-camera text-xs"></i>
+                        <input type="file" name="profile_picture" class="hidden" accept="image/*"
+                            onchange="previewImage(this)">
+                    </label>
+                </div>
+                <p class="text-xs text-slate-500 mt-3 uppercase tracking-widest font-bold">Update Student Photo</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Enrollment -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Enrollment
+                        Number</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-hashtag"></i></span>
+                        <input type="text" name="enrollment_number"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            value="{{ student.enrollment_number or '' }}" placeholder="e.g. 2023001">
+                    </div>
+                </div>
+
+                <!-- Username -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Username (Login
+                        ID)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-user-circle"></i></span>
+                        <input type="text" name="username"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required value="{{ student.username }}">
+                    </div>
+                </div>
+
+                <!-- Full Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full
+                        Name</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-user"></i></span>
+                        <input type="text" name="full_name"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required value="{{ student.full_name }}">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email
+                        Address</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-envelope"></i></span>
+                        <input type="email" name="email"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required value="{{ student.email }}">
+                    </div>
+                </div>
+
+                <!-- Contact Number -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Contact
+                        Number</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-phone"></i></span>
+                        <input type="text" name="contact_number"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            value="{{ student.contact_number or '' }}" placeholder="e.g. +91 9876543210">
+                    </div>
+                </div>
+
+                <!-- Program -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Program</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-graduation-cap"></i></span>
+                        <input type="text" name="program"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            value="{{ student.program or '' }}" placeholder="e.g. BCA">
+                    </div>
+                </div>
+
+                <!-- Semester -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Semester</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-layer-group"></i></span>
+                        <select name="semester"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">
+                            <option value="" disabled>Select Semester</option>
+                            {% for i in range(1, 9) %}
+                            <option value="{{ i }}" {% if student.semester==i|string %}selected{% endif %}>Semester {{ i
+                                }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Address</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-map-marker-alt"></i></span>
+                        <textarea name="address" rows="2"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            placeholder="Enter full address">{{ student.address or '' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-yellow-500/80 uppercase tracking-wider mb-2">Reset
+                        Password</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500"><i class="fas fa-lock"></i></span>
+                        <input type="text" name="password"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            placeholder="Leave blank to keep current">
+                    </div>
+                    <small class="text-xs text-slate-500 mt-1">Enter a new value to change the password.</small>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8">
+                <a href="{{ url_for('student_list') }}"
+                    class="px-6 py-2.5 rounded-xl border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition">Cancel</a>
+                <button type="submit"
+                    class="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition">Update
+                    Student</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.getElementById('preview');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                const icon = input.closest('.group').querySelector('.fa-user-circle');
+                if (icon) icon.classList.add('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

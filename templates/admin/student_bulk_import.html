@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Bulk Import Students{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="glass-card p-8 rounded-3xl border border-white/10 shadow-2xl">
+        <div class="flex items-center gap-4 mb-8">
+            <div
+                class="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl shadow-lg shadow-blue-500/10">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <h3 class="text-2xl font-bold text-white">Import Student Data</h3>
+                <p class="text-slate-400 text-sm">Upload an Excel file to add multiple students instantly.</p>
+            </div>
+        </div>
+
+        <!-- Step 1: Download Template -->
+        <div class="mb-10 p-6 rounded-2xl bg-white/5 border border-white/5 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="fas fa-file-excel text-6xl text-emerald-400"></i>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <span
+                    class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center">1</span>
+                Download Sample Template
+            </h4>
+            <p class="text-slate-400 text-sm mb-4">First, download our pre-formatted Excel template with all required
+                columns for student registration.</p>
+            <a href="{{ url_for('download_student_sample') }}"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20">
+                <i class="fas fa-download"></i> Download Students_Sample.xlsx
+            </a>
+        </div>
+
+        <!-- Step 2: Upload File -->
+        <form action="{{ url_for('import_students') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div class="p-6 rounded-2xl bg-white/5 border border-white/5 relative">
+                <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <span
+                        class="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">2</span>
+                    Upload Filled Data
+                </h4>
+
+                <div id="drop-area"
+                    class="border-2 border-dashed border-white/10 rounded-2xl p-10 text-center hover:border-blue-500/50 transition-colors group cursor-pointer bg-slate-900/50">
+                    <input type="file" name="file" id="fileElem" class="hidden" accept=".xlsx, .xls" required
+                        onchange="updateFileName()">
+                    <div onclick="document.getElementById('fileElem').click()">
+                        <div
+                            class="w-16 h-16 mx-auto bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                        </div>
+                        <p class="text-white font-bold mb-1" id="file-name">Click or drag & drop Excel file here</p>
+                        <p class="text-slate-500 text-xs text-uppercase font-bold tracking-widest">Supports .XLSX, .XLS
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4">
+                <a href="{{ url_for('student_list') }}"
+                    class="text-slate-400 hover:text-white transition flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back to Student List
+                </a>
+                <button type="submit"
+                    class="px-8 py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-xl shadow-blue-600/20 flex items-center gap-2">
+                    <i class="fas fa-magic"></i> Start Bulk Import
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+            <h5 class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i> Important Notes:
+            </h5>
+            <ul class="text-slate-500 text-xs space-y-1 ml-4 list-disc">
+                <li>Don't change the column headers in the Excel file.</li>
+                <li>Username and Email should be unique for every student.</li>
+                <li>Enrollment Number should also be unique.</li>
+                <li>Default password will be set if not provided in the Excel.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateFileName() {
+        const input = document.getElementById('fileElem');
+        const fileName = document.getElementById('file-name');
+        if (input.files.length > 0) {
+            fileName.innerText = input.files[0].name;
+            fileName.classList.add('text-blue-400');
+        }
+    }
+
+    // Basic drag and drop support
+    const dropArea = document.getElementById('drop-area');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('border-blue-500'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('border-blue-500'), false);
+    });
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        let dt = e.dataTransfer;
+        let files = dt.files;
+        document.getElementById('fileElem').files = files;
+        updateFileName();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Fee Headers{% endblock %}
+
+{% block dashboard_content %}
+<div class="mb-6 flex justify-between items-center">
+    <h3 class="text-xl font-bold text-white">Manage Fee Structures</h3>
+    <button onclick="openModal()"
+        class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition flex items-center gap-2">
+        <i class="fas fa-plus"></i> Add Fee Header
+    </button>
+</div>
+
+<div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                    <th class="p-4 font-bold">Fee Name</th>
+                    <th class="p-4 font-bold">Amount</th>
+                    <th class="p-4 font-bold">Due Date</th>
+                    <th class="p-4 font-bold">Priority</th>
+                    <th class="p-4 font-bold">Admission Type</th>
+                    <th class="p-4 font-bold">Applicable For</th>
+                    <th class="p-4 font-bold">Status</th>
+                    <th class="p-4 font-bold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for header in fee_headers %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-4 font-bold text-white">{{ header.name }}</td>
+                    <td class="p-4 text-indigo-300 font-mono">{{ "%.2f"|format(header.amount) }}</td>
+                    <td class="p-4 text-slate-300">{{ header.due_date.strftime('%Y-%m-%d') if header.due_date else '-'
+                        }}</td>
+                    <td class="p-4 text-slate-400">{{ header.priority }}</td>
+                    <td class="p-4 text-slate-300">{{ header.admission_type }}</td>
+                    <td class="p-4 text-slate-300">{{ header.applicable_for }}</td>
+                    <td class="p-4">
+                        {% if header.status %}
+                        <span
+                            class="px-2 py-1 rounded text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">Active</span>
+                        {% else %}
+                        <span
+                            class="px-2 py-1 rounded text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-right">
+                        <button data-header='{{ header.to_dict()|tojson }}'
+                            onclick='editHeader(JSON.parse(this.getAttribute("data-header")))'
+                            class="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:bg-indigo-500 hover:text-white transition inline-flex items-center justify-center">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="p-8 text-center text-slate-500">
+                        No fee headers found. Create one to get started.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="feeModal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
+        <div class="glass border border-white/10 rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white" id="modalTitle">Add Fee Header</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('save_fee_header') }}" method="POST">
+                <input type="hidden" name="header_id" id="header_id">
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Fee Name</label>
+                        <input type="text" name="name" id="name" required
+                            class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Amount</label>
+                            <input type="number" step="0.01" name="amount" id="amount" required
+                                class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Priority</label>
+                            <input type="number" name="priority" id="priority" value="0" required
+                                class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Due Date</label>
+                            <input type="date" name="due_date" id="due_date"
+                                class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">End Date (Opt)</label>
+                            <input type="date" name="end_date" id="end_date"
+                                class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Admission Type</label>
+                            <select name="admission_type" id="admission_type"
+                                class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition [&>option]:bg-slate-900">
+                                <option value="All">All Students</option>
+                                <option value="New">New Admission</option>
+                                <option value="Old">Old Students</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Applicable For</label>
+                            <select name="applicable_for" id="applicable_for"
+                                class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition [&>option]:bg-slate-900">
+                                <option value="All">All</option>
+                                <option value="Class">Class/Sem</option>
+                                <option value="Course">Course</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                        <input type="checkbox" name="status" id="status" value="1" checked
+                            class="w-5 h-5 rounded border-gray-600 bg-slate-700 text-indigo-600 focus:ring-indigo-500">
+                        <label for="status" class="text-sm font-medium text-slate-300">Active Status</label>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal()"
+                        class="px-6 py-2 rounded-xl text-slate-400 hover:text-white font-bold transition">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition">Save
+                        Header</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('feeModal').classList.remove('hidden');
+        document.getElementById('modalTitle').innerText = 'Add Fee Header';
+        document.getElementById('header_id').value = '';
+        document.getElementById('name').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('priority').value = '0';
+        document.getElementById('due_date').value = '';
+        document.getElementById('end_date').value = '';
+        document.getElementById('admission_type').value = 'All';
+        document.getElementById('applicable_for').value = 'All';
+        document.getElementById('status').checked = true;
+    }
+
+    function closeModal() {
+        document.getElementById('feeModal').classList.add('hidden');
+    }
+
+    function editHeader(header) {
+        document.getElementById('feeModal').classList.remove('hidden');
+        document.getElementById('modalTitle').innerText = 'Edit Fee Header';
+
+        document.getElementById('header_id').value = header.id;
+        document.getElementById('name').value = header.name;
+        document.getElementById('amount').value = header.amount;
+        document.getElementById('priority').value = header.priority;
+
+        // Format dates for input type=date
+        if (header.due_date) {
+            // header.due_date is simpler if passed as string or object. 
+            // In Jinja tojson, it usually serializes well or we need strings. 
+            // Let's assume we handle this in backend serializing or helper.
+            // Actually standard tojson on datetime might not work directly without custom encoder.
+            // I'll fix this in the backend route to pass a dict list or similar.
+            // For now, let's assume standard ISO string if customized.
+            document.getElementById('due_date').value = new Date(header.due_date).toISOString().split('T')[0];
+        }
+        if (header.end_date) {
+            document.getElementById('end_date').value = new Date(header.end_date).toISOString().split('T')[0];
+        }
+
+        document.getElementById('admission_type').value = header.admission_type;
+        document.getElementById('applicable_for').value = header.applicable_for;
+        document.getElementById('status').checked = header.status;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LibraTech{% endblock %} - ERP System</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Bootstrap CSS (Optional backup, mainly for grid if needed, but we prefer Tailwind) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --sidebar-bg: rgba(30, 41, 59, 0.4);
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --panel-bg: rgba(30, 41, 59, 0.6);
+            --mesh-opacity: 1;
+        }
+
+        /* Light Mode Variables */
+        html.light-mode {
+            --primary-bg: #f3f4f6;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #4b5563;
+            --border-color: #e5e7eb;
+            --panel-bg: #f9fafb;
+            --mesh-opacity: 0.1;
+            --indigo-accent: #4f46e5;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-main);
+        }
+
+        /* Animated Mesh Gradient Background */
+        .mesh-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -5;
+            background:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            opacity: var(--mesh-opacity);
+            transition: opacity 0.3s ease;
+        }
+
+        html.light-mode .mesh-bg {
+            background:
+                radial-gradient(at 0% 0%, #e0e7ff 0, transparent 50%),
+                radial-gradient(at 50% 0%, #f3e8ff 0, transparent 50%),
+                radial-gradient(at 100% 0%, #fce7f3 0, transparent 50%);
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Blobs */
+        .blob {
+            position: fixed;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.4) 100%);
+            filter: blur(80px);
+            z-index: -4;
+            border-radius: 50%;
+            animation: float-blob 10s infinite alternate;
+            pointer-events: none;
+            opacity: var(--mesh-opacity);
+        }
+
+        @keyframes float-blob {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(30px, 50px) scale(1.1);
+            }
+        }
+
+        /* Glassmorphism overrides with variables */
+        .glass {
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            background: var(--card-bg);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form Inputs */
+        .form-control,
+        .form-select,
+        input:not([type="submit"]):not([type="checkbox"]),
+        textarea,
+        select {
+            background-color: rgba(15, 23, 42, 0.05) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-main) !important;
+        }
+
+        html.light-mode .form-control,
+        html.light-mode .form-select,
+        html.light-mode input:not([type="submit"]):not([type="checkbox"]),
+        html.light-mode textarea,
+        html.light-mode select {
+            background-color: #ffffff !important;
+            border: 1px solid #d1d5db !important;
+            color: #111827 !important;
+        }
+
+        /* COMPREHENSIVE LIGHT THEME OVERRIDES */
+        html.light-mode .text-white,
+        html.light-mode .text-slate-200,
+        html.light-mode .text-slate-100,
+        html.light-mode .text-gray-200 {
+            color: var(--text-main) !important;
+        }
+
+        html.light-mode .text-slate-400,
+        html.light-mode .text-slate-300,
+        html.light-mode .text-slate-500,
+        html.light-mode .text-gray-400 {
+            color: var(--text-muted) !important;
+        }
+
+        html.light-mode .bg-white\/5,
+        html.light-mode .bg-white\/10,
+        html.light-mode .bg-slate-800,
+        html.light-mode .bg-slate-900,
+        html.light-mode .bg-slate-900\/50,
+        html.light-mode .bg-slate-700 {
+            background-color: #f3f4f6 !important;
+            color: #111827 !important;
+        }
+
+        /* SPECIFIC COMPONENT OVERRIDES FOR LIGHT MODE */
+        html.light-mode .bg-slate-700,
+        html.light-mode .bg-slate-800,
+        html.light-mode .bg-slate-900 {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Next/Previous Button Fix */
+        html.light-mode a.bg-slate-700,
+        html.light-mode button.bg-slate-700,
+        html.light-mode button.bg-slate-800 {
+            background-color: #ffffff !important;
+            color: #64748b !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        html.light-mode a.bg-slate-700:hover,
+        html.light-mode button.bg-slate-700:hover,
+        html.light-mode button.bg-slate-800:hover {
+            background-color: #f8fafc !important;
+            color: #4f46e5 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        /* Camera Icon & Input icons */
+        html.light-mode .fa-camera,
+        html.light-mode .fa-barcode,
+        html.light-mode .fa-user-graduate {
+            color: #64748b !important;
+        }
+
+        /* Fees Applicable Label & Similar Badges */
+        html.light-mode .bg-slate-800,
+        html.light-mode .text-slate-400.bg-slate-800 {
+            background-color: #e2e8f0 !important;
+            color: #475569 !important;
+        }
+
+        /* Input specific fix for slate-900 backgrounds */
+        html.light-mode .bg-slate-900\/50 {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #111827 !important;
+        }
+
+        /* Table themed overrides */
+        .table-custom th {
+            background-color: var(--sidebar-bg) !important;
+            color: var(--text-muted) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        .table-custom td {
+            border-bottom: 1px solid var(--border-color) !important;
+            color: var(--text-main);
+        }
+
+        /* Sidebar themed overrides */
+        html.light-mode .nav-link:hover,
+        html.light-mode .nav-link.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: #6366f1 !important;
+        }
+
+        html.light-mode .branding {
+            color: #111827 !important;
+        }
+
+        /* Sidebar Link Hover Fix */
+        #sidebar a:hover {
+            background-color: rgba(99, 102, 241, 0.1) !important;
+            color: #6366f1 !important;
+        }
+
+        html.light-mode #sidebar a:hover {
+            background-color: #f3f4f6 !important;
+            color: #4f46e5 !important;
+        }
+
+        html.light-mode #sidebar a.active {
+            background-color: rgba(79, 70, 229, 0.1) !important;
+            color: #4f46e5 !important;
+        }
+
+        /* Table */
+        html.light-mode tr:hover {
+            background-color: #f9fafb !important;
+        }
+
+        html.light-mode thead tr {
+            background-color: #f9fafb !important;
+        }
+
+        /* Scrollbar themed */
+        html.light-mode ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+
+        html.light-mode ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 4px;
+            opacity: 0.5;
+        }
+    </style>
+    <script>
+        // Theme Detection & Application
+        (function () {
+            const theme = localStorage.getItem('theme') || 'dark';
+            if (theme === 'light') {
+                document.documentElement.classList.add('light-mode');
+            }
+        })();
+    </script>
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="selection:bg-indigo-500 selection:text-white">
+
+    <!-- Background Elements -->
+    <div class="mesh-bg"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    {% block content %}{% endblock %}
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

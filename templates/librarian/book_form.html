@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block page_title %}{{ 'Edit Book' if book else 'Add New Book' }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="glass-card rounded-2xl p-8 border border-white/5">
+        <h4 class="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">
+            {{ 'Edit Book Details' if book else 'New Book Registration' }}
+        </h4>
+
+        <form method="POST" action="{{ url_for('edit_book', book_id=book.id) if book else url_for('add_book') }}"
+            enctype="multipart/form-data">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+
+                <!-- Image Upload Col -->
+                <div class="md:col-span-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Book
+                        Cover</label>
+                    <div class="relative group">
+                        <div class="w-full aspect-[3/4] rounded-2xl bg-slate-900 border-2 border-dashed border-slate-700 overflow-hidden flex flex-col items-center justify-center text-slate-500 hover:border-indigo-500 transition-colors relative cursor-pointer"
+                            onclick="document.getElementById('book_image').click()">
+                            {% if book and book.cover_image != 'default_book.jpg' %}
+                            <img id="preview"
+                                src="{{ url_for('static', filename='uploads/books/' + book.cover_image) }}"
+                                class="w-full h-full object-cover">
+                            {% else %}
+                            <img id="preview" src="" class="w-full h-full object-cover hidden">
+                            <div id="placeholder" class="text-center p-4">
+                                <i class="fas fa-cloud-upload-alt text-3xl mb-2"></i>
+                                <p class="text-[10px] font-bold">CLICK TO UPLOAD PHOTO</p>
+                            </div>
+                            {% endif %}
+
+                            <!-- Hover Overlay -->
+                            <div
+                                class="absolute inset-0 bg-indigo-600/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <i class="fas fa-camera text-2xl text-white"></i>
+                            </div>
+                        </div>
+                        <input type="file" name="book_image" id="book_image" class="hidden" accept="image/*"
+                            onchange="previewImage(this)">
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-3 text-center">Recommended size: 300x400px (JPG/PNG)</p>
+                </div>
+
+                <!-- Info Col -->
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Title -->
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Book
+                            Title</label>
+                        <input type="text" name="title" value="{{ book.title if book else '' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required placeholder="e.g. Introduction to Algorithms">
+                    </div>
+
+                    <!-- ISBN -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">ISBN
+                            Number</label>
+                        <input type="text" name="isbn" value="{{ book.isbn if book else '' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required placeholder="e.g. 978-0262033848">
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                        <select name="category_id"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required>
+                            <option value="" disabled {{ 'selected' if not book }}>Select Category</option>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}" {{ 'selected' if book and book.category_id==c.id }}>{{ c.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Author -->
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Author</label>
+                        <select name="author_id"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required>
+                            <option value="" disabled {{ 'selected' if not book }}>Select Author</option>
+                            {% for a in authors %}
+                            <option value="{{ a.id }}" {{ 'selected' if book and book.author_id==a.id }}>{{ a.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Publisher -->
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Publisher</label>
+                        <input type="text" name="publisher" value="{{ book.publisher if book else '' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            placeholder="e.g. MIT Press">
+                    </div>
+
+                    <!-- Year -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Publication
+                            Year</label>
+                        <input type="number" name="year" value="{{ book.publication_year if book else '' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            placeholder="2023">
+                    </div>
+
+                    <!-- Rack -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Rack
+                            Number</label>
+                        <input type="text" name="rack" value="{{ book.rack_number if book else '' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            placeholder="e.g. A-12">
+                    </div>
+
+                    <!-- Copies -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total
+                            Copies</label>
+                        <input type="number" name="copies" value="{{ book.total_copies if book else '1' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            min="1" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8 border-t border-white/5 pt-6">
+                <a href="{{ url_for('book_list') }}"
+                    class="px-6 py-2.5 rounded-xl border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition">Cancel</a>
+                <button type="submit"
+                    class="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition flex items-center gap-2">
+                    <i class="fas fa-save"></i> {{ 'Update Changes' if book else 'Save Book' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        const preview = document.getElementById('preview');
+        const placeholder = document.getElementById('placeholder');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                if (placeholder) placeholder.classList.add('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

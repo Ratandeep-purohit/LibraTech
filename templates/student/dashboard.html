@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500 relative overflow-hidden group">
+        <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+        <div class="flex justify-between items-start relative z-10">
+            <div>
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">My Issued Books</h3>
+                <p class="text-3xl font-bold text-white mt-1">{{ my_issues }}</p>
+            </div>
+            <div
+                class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+                <i class="fas fa-book-reader"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-6 rounded-2xl border-l-4 border-l-red-500 relative overflow-hidden group">
+        <div class="absolute right-0 top-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+        <div class="flex justify-between items-start relative z-10">
+            <div>
+                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Pending Fines</h3>
+                <p class="text-3xl font-bold text-white mt-1">&#8377;{{ "%.2f"|format(my_fines) }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center text-xl">
+                <i class="fas fa-receipt"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card rounded-2xl border border-white/5 p-6">
+    <h4 class="text-lg font-bold text-white mb-4">Currently Issued</h4>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                    <th class="p-4 rounded-tl-lg">Book</th>
+                    <th class="p-4">Issue Date</th>
+                    <th class="p-4">Due Date</th>
+                    <th class="p-4 rounded-tr-lg">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% if current_issues %}
+                {% for issue in current_issues %}
+                <tr class="hover:bg-white/5 transition">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-200">{{ issue.book.title }}</div>
+                        <div class="text-xs text-slate-500">{{ issue.book.isbn }}</div>
+                    </td>
+                    <td class="p-4 text-slate-400 font-mono text-sm">{{ issue.issue_date.strftime('%Y-%m-%d') }}</td>
+                    <td class="p-4">
+                        {% set days_left = (issue.due_date - now).days %}
+                        <span
+                            class="{{ 'text-red-400 font-bold' if days_left < 0 else 'text-emerald-400 font-mono text-sm' }}">
+                            {{ issue.due_date.strftime('%Y-%m-%d') }}
+                        </span>
+                        {% if days_left < 0 %} <span
+                            class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 ml-2 border border-red-500/30">
+                            Overdue</span>
+                            {% else %}
+                            <span class="text-xs text-slate-500 block">({{ days_left }} days left)</span>
+                            {% endif %}
+                    </td>
+                    <td class="p-4"><span
+                            class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-500 text-xs font-bold border border-yellow-500/20">Active</span>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-slate-500 py-8">No active book issues.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-8">
+    <h4 class="text-lg font-bold text-white mb-4">Recommended For You (New Arrivals)</h4>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Mock Recommendations ensuring high aesthetics -->
+        {% for title in ['Clean Code', 'The Pragmatic Programmer', 'Design Patterns', 'Refactoring'] %}
+        <div
+            class="glass-card rounded-2xl p-4 hover:-translate-y-2 transition duration-300 border border-white/5 group bg-white/5">
+            <div
+                class="h-40 bg-slate-800/50 rounded-xl mb-4 flex items-center justify-center text-slate-600 group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition">
+                <i class="fas fa-book fa-3x"></i>
+            </div>
+            <h5 class="font-bold text-slate-200 text-sm truncate group-hover:text-indigo-300 transition">{{ title }}
+            </h5>
+            <p class="text-xs text-slate-500 mb-3">Best Seller</p>
+            <span
+                class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-[10px] font-bold border border-indigo-500/20">Technology</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

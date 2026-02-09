@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <nav class="w-64 fixed h-full glass border-r border-white/10 z-50 text-slate-300 flex flex-col transition-all duration-300"
+        id="sidebar">
+        <div class="h-20 flex items-center px-6 border-b border-white/5">
+            <span class="text-2xl font-bold flex items-center gap-2 text-white branding">
+                <div
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <i class="fas fa-book-reader text-xs text-white"></i>
+                </div>
+                Libra<span class="text-indigo-400">Tech</span>
+            </span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-6 space-y-1">
+            <div class="px-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Main</div>
+
+            <a href="{{ url_for('dashboard') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint and 'dashboard' in request.endpoint %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-th-large w-6"></i> Dashboard
+            </a>
+
+            {% if current_user.role == 'admin' or current_user.role == 'librarian' %}
+            <a href="{{ url_for('book_list') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'book_list' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-book w-6"></i> Books Catalog
+            </a>
+            <a href="{{ url_for('issue_book') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'issue_book' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-clipboard-list w-6"></i> Issue Book
+            </a>
+            <a href="{{ url_for('issued_books') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'issued_books' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-book-open w-6"></i> Issued Books
+            </a>
+            <a href="{{ url_for('view_book_requests') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'view_book_requests' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-bell w-6"></i> Book Requests
+            </a>
+            <a href="{{ url_for('student_list') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'student_list' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-users w-6"></i> Students
+            </a>
+            <a href="{{ url_for('fine_list') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'fine_list' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-coins w-6"></i> Fines Management
+            </a>
+
+            <div class="px-6 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Fees</div>
+            <a href="{{ url_for('fee_headers') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'fee_headers' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-coins w-6"></i> Fee Headers
+            </a>
+            <a href="{{ url_for('apply_fees') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'apply_fees' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-hand-holding-usd w-6"></i> Apply Fees
+            </a>
+            <a href="{{ url_for('fee_collection') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'fee_collection' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-cash-register w-6"></i> Fees Collection
+            </a>
+
+            <div class="px-6 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Reports & Analytics
+            </div>
+            <a href="{{ url_for('analytics_dashboard') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'analytics_dashboard' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-chart-bar w-6"></i> Advanced Analytics
+            </a>
+            {% endif %}
+
+            {% if current_user.role == 'student' %}
+            <a href="{{ url_for('student_history') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'student_history' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-history w-6"></i> My History
+            </a>
+            <a href="{{ url_for('book_list') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'book_list' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-search w-6"></i> Browse Books
+            </a>
+            {% endif %}
+
+            <div class="px-6 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Account</div>
+            <a href="{{ url_for('profile') }}"
+                class="flex items-center px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white {% if request.endpoint == 'profile' %}bg-indigo-500/10 text-indigo-400 border-r-2 border-indigo-500{% endif %}">
+                <i class="fas fa-user-circle w-6"></i> My Profile
+            </a>
+        </div>
+
+        <div class="p-4 border-t border-white/5">
+            <div class="glass-panel p-3 rounded-xl flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold overflow-hidden">
+                    {% if current_user.profile_picture and current_user.profile_picture != 'default_user.jpg' %}
+                    <img src="{{ url_for('static', filename='uploads/users/' + current_user.profile_picture) }}"
+                        class="w-full h-full object-cover">
+                    {% else %}
+                    {{ current_user.full_name[0] }}
+                    {% endif %}
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-bold text-white truncate">{{ current_user.full_name }}</p>
+                    <p class="text-xs text-slate-400 capitalize">{{ current_user.role }}</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="flex-1 ml-64 p-8 relative z-10">
+        <!-- Top Header for page title only, user profile moved to sidebar bottom for better UX -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-white">
+                    {% block page_title %}Dashboard{% endblock %}
+                </h2>
+                <p class="text-slate-400 text-sm mt-1">Welcome back, get ready to manage your library.</p>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Notification Bell -->
+                <div class="relative" id="notifications-wrapper">
+                    <button id="notification-btn"
+                        class="w-10 h-10 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition flex items-center justify-center border border-white/10 relative">
+                        <i class="fas fa-bell"></i>
+                        <span id="notif-count"
+                            class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-slate-900">0</span>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div id="notification-dropdown"
+                        class="hidden absolute right-0 mt-3 w-80 glass-card border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+                            <h5 class="text-sm font-bold text-white">Notifications</h5>
+                            <button id="mark-read-btn"
+                                class="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold uppercase tracking-wider">Mark
+                                all as read</button>
+                        </div>
+                        <div id="notification-list" class="max-h-96 overflow-y-auto py-2">
+                            <!-- JS populated -->
+                            <div class="p-4 text-center text-slate-500 text-xs py-8">No new notifications</div>
+                        </div>
+                        <a href="{{ url_for('view_book_requests') if current_user.role in ['admin', 'librarian'] else '#' }}"
+                            class="block p-3 text-center text-xs font-bold text-slate-400 hover:bg-white/5 border-t border-white/5 transition">
+                            View All Book Requests
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Settings Dropdown -->
+                <div class="relative" id="settings-wrapper">
+                    <button id="settings-btn"
+                        class="px-4 py-2 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition text-sm font-medium border border-white/10 flex items-center gap-2"
+                        style="color: var(--text-muted);">
+                        <i class="fas fa-cog"></i> Settings
+                        <i class="fas fa-chevron-down text-[10px] ml-1"></i>
+                    </button>
+
+                    <!-- Dropdown Content -->
+                    <div id="settings-dropdown"
+                        class="hidden absolute right-0 mt-3 w-56 glass-card border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden">
+                        <div class="p-2">
+                            <!-- Theme Toggle Section -->
+                            <div class="px-4 py-3 border-b border-white/5 mb-1"
+                                style="border-color: var(--border-color);">
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-3"
+                                    style="color: var(--text-muted);">
+                                    Appearance</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs" style="color: var(--text-main);">Theme</span>
+                                    <button id="theme-toggle"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-700 transition-colors focus:outline-none">
+                                        <span id="theme-toggle-dot"
+                                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                                    </button>
+                                </div>
+                                <div class="flex justify-between mt-2 text-[10px] px-1"
+                                    style="color: var(--text-muted);">
+                                    <span>Dark</span>
+                                    <span>Light</span>
+                                </div>
+                            </div>
+
+                            <!-- Logout Option -->
+                            <a href="{{ url_for('logout') }}"
+                                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition text-sm group"
+                                style="color: var(--text-main);">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </div>
+                                <span class="group-hover:text-red-400">Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="fade-in">
+            <!-- Flashed Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="p-4 mb-6 rounded-xl border backdrop-blur-md flex items-center gap-3
+                {% if category == 'success' %}bg-green-500/10 border-green-500/20 text-green-400{% endif %}
+                {% if category == 'danger' %}bg-red-500/10 border-red-500/20 text-red-400{% endif %}
+                {% if category == 'warning' %}bg-yellow-500/10 border-yellow-500/20 text-yellow-400{% endif %}
+                {% if category == 'info' %}bg-blue-500/10 border-blue-500/20 text-blue-400{% endif %}
+                ">
+                <i class="fas fa-info-circle"></i> {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block dashboard_content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 py-6 text-center text-xs text-slate-600 border-t border-white/5">
+            &copy; 2026 LibraTech ERP System. All rights reserved.
+        </footer>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notifBtn = document.getElementById('notification-btn');
+        const notifDropdown = document.getElementById('notification-dropdown');
+        const notifList = document.getElementById('notification-list');
+        const notifCount = document.getElementById('notif-count');
+        const markReadBtn = document.getElementById('mark-read-btn');
+
+        // Toggle dropdown
+        notifBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpening = notifDropdown.classList.contains('hidden');
+            notifDropdown.classList.toggle('hidden');
+
+            if (isOpening) {
+                fetchNotifications();
+                // When opening, we can also trigger a background "mark all as read" 
+                // but usually better to wait for a click or use a "Mark All" button.
+                // However, to fix the "still showing 1" immediately, we'll mark as read.
+                markAllAsRead(false); // background mark read
+            }
+        });
+
+        // Settings Dropdown
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsDropdown = document.getElementById('settings-dropdown');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeToggleDot = document.getElementById('theme-toggle-dot');
+
+        settingsBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            settingsDropdown.classList.toggle('hidden');
+            notifDropdown.classList.add('hidden'); // Close other dropdown
+        });
+
+        settingsDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        // Initialize theme toggle UI
+        const currentTheme = localStorage.getItem('theme') || 'dark';
+        if (currentTheme === 'light') {
+            themeToggleDot.classList.replace('translate-x-1', 'translate-x-6');
+            themeToggle.classList.replace('bg-slate-700', 'bg-indigo-500');
+        }
+
+        themeToggle.addEventListener('click', function () {
+            const isLight = document.documentElement.classList.toggle('light-mode');
+            const theme = isLight ? 'light' : 'dark';
+            localStorage.setItem('theme', theme);
+
+            // UI Update
+            if (isLight) {
+                themeToggleDot.classList.replace('translate-x-1', 'translate-x-6');
+                themeToggle.classList.replace('bg-slate-700', 'bg-indigo-500');
+            } else {
+                themeToggleDot.classList.replace('translate-x-6', 'translate-x-1');
+                themeToggle.classList.replace('bg-indigo-500', 'bg-slate-700');
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function () {
+            notifDropdown.classList.add('hidden');
+            settingsDropdown.classList.add('hidden');
+        });
+
+        // Fetch notifications
+        function fetchNotifications() {
+            fetch('/api/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    updateNotificationUI(data);
+                });
+        }
+
+        function updateNotificationUI(data) {
+            if (data.unread_count > 0) {
+                notifCount.textContent = data.unread_count;
+                notifCount.classList.remove('hidden');
+            } else {
+                notifCount.classList.add('hidden');
+            }
+
+            if (data.notifications.length === 0) {
+                notifList.innerHTML = '<div class="p-4 text-center text-slate-500 text-xs py-8">No notifications</div>';
+                return;
+            }
+
+            notifList.innerHTML = data.notifications.map(n => `
+                <a href="${n.link}" class="block p-4 hover:bg-white/5 transition border-b border-white/5 last:border-0 ${n.is_read ? 'opacity-60' : 'bg-indigo-500/5'}">
+                    <p class="text-xs text-slate-200 mb-1 leading-relaxed">${n.message}</p>
+                    <span class="text-[10px] text-slate-500 font-mono">${n.time}</span>
+                </a>
+            `).join('');
+        }
+
+        function markAllAsRead(refreshUI = true) {
+            fetch('/api/notifications/mark_read', { method: 'POST' })
+                .then(() => {
+                    if (refreshUI) fetchNotifications();
+                    else {
+                        // Just hide the badge immediately for better UX
+                        notifCount.classList.add('hidden');
+                    }
+                });
+        }
+
+        // Mark as read button
+        markReadBtn.addEventListener('click', function () {
+            markAllAsRead(true);
+        });
+
+        // Initial fetch and poll
+        fetchNotifications();
+        setInterval(fetchNotifications, 30000); // Every 30 seconds
+    });
+</script>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

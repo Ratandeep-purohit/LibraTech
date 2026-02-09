@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibraTech - The Future of Library Management</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Animation Library (AOS is heavy, let's use custom for performance) -->
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --accent-glow: #6366f1;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--primary-bg);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Animated Mesh Gradient Background */
+        .mesh-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background:
+                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Blobs */
+        .blob {
+            position: absolute;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.4) 100%);
+            filter: blur(80px);
+            z-index: -1;
+            border-radius: 50%;
+            animation: float-blob 10s infinite alternate;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            animation-delay: -5s;
+            background: linear-gradient(180deg, rgba(236, 72, 153, 0.3) 0%, rgba(244, 63, 94, 0.3) 100%);
+        }
+
+        @keyframes float-blob {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(30px, 50px) scale(1.1);
+            }
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(to right, #818cf8, #e879f9, #38bdf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: textShine 5s linear infinite;
+        }
+
+        @keyframes textShine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        /* Scroll Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 3D Tilt Effect on Hero Image */
+        .hero-image-container {
+            perspective: 1000px;
+        }
+
+        .hero-image {
+            transform-style: preserve-3d;
+            transition: transform 0.1s;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="selection:bg-indigo-500 selection:text-white">
+
+    <!-- Background Elements -->
+    <div class="mesh-bg"></div>
+    <div class="overflow-hidden fixed inset-0 pointer-events-none">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4">
+            <div class="glass rounded-full px-6 py-3 flex justify-between items-center bg-slate-900/50">
+                <a href="#" class="text-2xl font-bold flex items-center gap-2 text-white">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-book-open text-xs text-white"></i>
+                    </div>
+                    <span class="tracking-tight">Libra<span class="text-indigo-400">Tech</span></span>
+                </a>
+
+                <div class="hidden md:flex space-x-8 items-center text-sm font-medium text-slate-300">
+                    <a href="#features" class="hover:text-white transition cursor-pointer">Features</a>
+                    <a href="#about" class="hover:text-white transition cursor-pointer">About</a>
+                    <a href="#stats" class="hover:text-white transition cursor-pointer">Stats</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a href="{{ url_for('login') }}"
+                        class="text-sm font-medium text-slate-300 hover:text-white transition">Log In</a>
+                    <a href="{{ url_for('register') }}"
+                        class="px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition transform">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+        <div class="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-16 relative z-10">
+
+            <!-- Hero Content -->
+            <div class="w-full lg:w-1/2 text-center lg:text-left reveal active">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-6 animate-pulse">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> New Era of Management
+                </div>
+
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6 text-white">
+                    Library Management <br> <span class="text-gradient">Redefined.</span>
+                </h1>
+
+                <p class="text-lg text-slate-400 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                    Experience the most powerful, aesthetic, and intelligent ERP system.
+                    Streamline operations, track assets, and engage students with a platform built for the future.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="{{ url_for('login') }}"
+                        class="px-8 py-4 bg-white text-slate-900 font-bold rounded-xl shadow-xl hover:bg-slate-100 hover:translate-y-1 transition transform duration-200 flex items-center justify-center gap-3">
+                        <i class="fas fa-rocket text-indigo-600"></i> Launch Dashboard
+                    </a>
+                    <a href="#features"
+                        class="px-8 py-4 glass text-white font-bold rounded-xl hover:bg-white/10 hover:translate-y-1 transition transform duration-200 flex items-center justify-center gap-2">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Trusted By Small -->
+                <div class="mt-12 pt-8 border-t border-white/10">
+                    <p class="text-xs text-slate-500 mb-4 uppercase tracking-widest">Trusted by leading institutes</p>
+                    <div
+                        class="flex gap-6 justify-center lg:justify-start opacity-50 grayscale hover:grayscale-0 transition duration-500">
+                        <i class="fab fa-aws text-2xl"></i>
+                        <i class="fab fa-google text-2xl"></i>
+                        <i class="fab fa-microsoft text-2xl"></i>
+                        <i class="fab fa-dropbox text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Image / 3D Element -->
+            <div class="w-full lg:w-1/2 relative hero-image-container reveal" style="transition-delay: 200ms;">
+                <div class="relative z-10 hero-image" id="tiltElement">
+                    <!-- Main Dashboard Preview (Simulated with CSS/Image) -->
+                    <div
+                        class="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-slate-800/50 backdrop-blur-xl group">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition duration-500">
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                            alt="LibraTech Classic Library"
+                            class="w-full h-auto object-cover transform transition duration-700 hover:scale-105 rounded-xl block">
+
+                        <!-- Floating UI Elements -->
+                        <div class="absolute top-10 right-10 glass p-4 rounded-xl shadow-lg animate-bounce"
+                            style="animation-duration: 3s;">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400">Books Returned</p>
+                                    <p class="font-bold text-white">+124 Today</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="absolute bottom-10 left-10 glass p-4 rounded-xl shadow-lg animate-bounce"
+                            style="animation-duration: 4s; animation-delay: 1s;">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400">New Members</p>
+                                    <p class="font-bold text-white">45 Joined</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Glow behind image -->
+                <div
+                    class="absolute -inset-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur-3xl opacity-20 -z-10">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 relative z-10">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-indigo-400 font-bold tracking-wider uppercase text-sm mb-3">Why Choose LibraTech?</h2>
+                <h3 class="text-3xl md:text-5xl font-bold text-white">Features that empower <br> your institution</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="glass-card p-8 rounded-2xl reveal relative overflow-hidden group">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-16 -mt-16 transition group-hover:bg-indigo-500/20">
+                    </div>
+                    <div
+                        class="w-14 h-14 bg-indigo-900/50 rounded-xl flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-book text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Catalog Management</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Effortlessly organize books with our smart cataloging system. Auto-fetch ISBN details and manage
+                        categories.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-card p-8 rounded-2xl reveal relative overflow-hidden group"
+                    style="transition-delay: 100ms;">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mr-16 -mt-16 transition group-hover:bg-purple-500/20">
+                    </div>
+                    <div
+                        class="w-14 h-14 bg-purple-900/50 rounded-xl flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-chart-pie text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Smart Analytics</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Gain insights into borrowing trends, popular genres, and overdue fines with our real-time
+                        dashboard.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-card p-8 rounded-2xl reveal relative overflow-hidden group"
+                    style="transition-delay: 200ms;">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl -mr-16 -mt-16 transition group-hover:bg-pink-500/20">
+                    </div>
+                    <div
+                        class="w-14 h-14 bg-pink-900/50 rounded-xl flex items-center justify-center text-pink-400 mb-6 group-hover:scale-110 transition duration-300">
+                        <i class="fas fa-user-shield text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Secure Access</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Role-based access control (RBAC) ensures data security for admins, librarians, and students.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="py-20 relative z-10 border-y border-white/5 bg-slate-900/30 backdrop-blur-sm">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-white/10">
+                <div class="reveal">
+                    <h4 class="text-4xl md:text-5xl font-bold text-white mb-2 counter" data-target="5000">0</h4>
+                    <p class="text-indigo-300 text-sm font-medium">Books Managed</p>
+                </div>
+                <div class="reveal" style="transition-delay: 100ms;">
+                    <h4 class="text-4xl md:text-5xl font-bold text-white mb-2 counter" data-target="1200">0</h4>
+                    <p class="text-purple-300 text-sm font-medium">Happy Students</p>
+                </div>
+                <div class="reveal" style="transition-delay: 200ms;">
+                    <h4 class="text-4xl md:text-5xl font-bold text-white mb-2 counter" data-target="99">0</h4>
+                    <p class="text-pink-300 text-sm font-medium">Uptime %</p>
+                </div>
+                <div class="reveal" style="transition-delay: 300ms;">
+                    <h4 class="text-4xl md:text-5xl font-bold text-white mb-2 counter" data-target="24">0</h4>
+                    <p class="text-blue-300 text-sm font-medium">Support Hours</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 py-12 border-t border-white/10 relative z-10">
+        <div class="container mx-auto px-6 text-center">
+            <div class="mb-8">
+                <a href="#" class="text-2xl font-bold inline-flex items-center gap-2 text-white">
+                    <i class="fas fa-book-reader text-indigo-500"></i> LibraTech
+                </a>
+            </div>
+            <p class="text-slate-500 text-sm mb-8">© 2026 LibraTech System. Built for the Future.</p>
+            <div class="flex justify-center space-x-6">
+                <a href="#" class="text-slate-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-slate-400 hover:text-white transition"><i class="fab fa-github"></i></a>
+                <a href="#" class="text-slate-400 hover:text-white transition"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Scroll Reveal Animation
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        // Trigger once on load
+        reveal();
+
+        // 3D Tilt Effect
+        const heroContainer = document.querySelector('.hero-image-container');
+        const heroImage = document.getElementById('tiltElement');
+
+        if (heroContainer && heroImage) {
+            heroContainer.addEventListener('mousemove', (e) => {
+                const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+                const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+                heroImage.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+
+            heroContainer.addEventListener('mouseenter', (e) => {
+                heroImage.style.transition = 'none';
+            });
+
+            heroContainer.addEventListener('mouseleave', (e) => {
+                heroImage.style.transition = 'all 0.5s ease';
+                heroImage.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            });
+        }
+
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-2');
+                navbar.querySelector('.glass').classList.add('bg-slate-900/80');
+            } else {
+                navbar.classList.remove('py-2');
+                navbar.querySelector('.glass').classList.remove('bg-slate-900/80');
+            }
+        });
+
+        // Simple Counter Animation
+        const counters = document.querySelectorAll('.counter');
+        const speed = 200;
+
+        const animateCounters = () => {
+            counters.forEach(counter => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const inc = target / speed;
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + inc);
+                        setTimeout(updateCount, 20);
+                    } else {
+                        counter.innerText = target + (counter.getAttribute('data-target').includes('.') ? '%' : '+');
+                    }
+                };
+                updateCount();
+            });
+        }
+
+        // Trigger counters when in view (simple observer)
+        let counted = false;
+        window.addEventListener('scroll', () => {
+            const statsSection = document.getElementById('stats');
+            if (statsSection && window.scrollY + window.innerHeight > statsSection.offsetTop && !counted) {
+                animateCounters();
+                counted = true;
+            }
+        });
+
+    </script>
+</body>
+
+</html>

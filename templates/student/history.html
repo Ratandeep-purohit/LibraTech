@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+
+{% block page_title %}My Reading History{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-card rounded-2xl border border-white/5 p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h4 class="text-lg font-bold text-white">Issue & Return Log</h4>
+        <span
+            class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-bold border border-indigo-500/20">
+            Total Records: {{ history|length }}
+        </span>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-slate-400 text-xs uppercase tracking-wider">
+                    <th class="p-4 rounded-tl-lg">Book Details</th>
+                    <th class="p-4">Issue Date</th>
+                    <th class="p-4">Return Date</th>
+                    <th class="p-4">Fines</th>
+                    <th class="p-4 rounded-tr-lg">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% if history %}
+                {% for issue in history %}
+                <tr class="hover:bg-white/5 transition group">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-200 group-hover:text-indigo-300 transition">{{ issue.book.title
+                            }}</div>
+                        <div class="text-xs text-slate-500">{{ issue.book.isbn }}</div>
+                    </td>
+                    <td class="p-4 text-slate-400 font-mono text-sm">{{ issue.issue_date.strftime('%Y-%m-%d') }}</td>
+                    <td class="p-4 text-slate-400 font-mono text-sm">
+                        {% if issue.return_date %}
+                        {{ issue.return_date.strftime('%Y-%m-%d') }}
+                        {% else %}
+                        <span class="text-slate-600 italic">Not returned yet</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if issue.fine %}
+                        <span class="text-red-400 font-bold">&#8377;{{ "%.2f"|format(issue.fine.amount) }}</span>
+                        {% if issue.fine.paid %}
+                        <span
+                            class="text-[10px] ml-1 px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/20">Paid</span>
+                        {% else %}
+                        <span
+                            class="text-[10px] ml-1 px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/20">Unpaid</span>
+                        {% endif %}
+                        {% else %}
+                        <span class="text-slate-500">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if issue.status == 'issued' %}
+                        <span
+                            class="px-2 py-1 rounded bg-yellow-500/10 text-yellow-500 text-xs font-bold border border-yellow-500/20">Active</span>
+                        {% else %}
+                        <span
+                            class="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">Completed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-slate-500 py-12">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-history text-4xl mb-4 opacity-10"></i>
+                            <p>You haven't borrowed any books yet.</p>
+                            <a href="{{ url_for('book_list') }}"
+                                class="mt-4 text-indigo-400 hover:text-indigo-300 font-bold text-sm underline">Browse
+                                our catalog</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

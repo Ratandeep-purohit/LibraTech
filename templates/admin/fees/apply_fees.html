@@ -1,0 +1,228 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Apply Fees to Student{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left Column: Student Search & Details -->
+    <div class="space-y-6">
+        <!-- Search -->
+        <div class="glass-card p-6 rounded-2xl border border-white/5">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-bold text-white">Select Student</h4>
+                <a href="{{ url_for('bulk_import_fees') }}"
+                    class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-500 hover:text-white transition flex items-center gap-1.5">
+                    <i class="fas fa-file-excel"></i> Bulk Fees Import
+                </a>
+            </div>
+            <div class="relative">
+                <input type="text" id="studentSearch" placeholder="Search Name or ID..."
+                    class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600 pl-12"
+                    autocomplete="off">
+                <i class="fas fa-search absolute left-1 top-1/2 -translate-y-1/2 text-slate-400 opacity-60"></i>
+
+                <!-- Suggestions Dropdown -->
+                <div id="searchSuggestions"
+                    class="absolute left-0 right-0 mt-2 bg-slate-800 border border-white/10 rounded-xl shadow-2xl z-50 hidden max-h-60 overflow-y-auto">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected Student Details -->
+        <div id="studentDetails" class="glass-card p-6 rounded-2xl border border-white/5 hidden">
+            <h4 class="text-lg font-bold text-white mb-4">Student Details</h4>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-2xl"
+                    id="stuInitials">S</div>
+                <div>
+                    <h5 class="font-bold text-xl text-white" id="stuName">Student Name</h5>
+                    <p class="text-sm text-slate-400" id="stuId">ID: 12345</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-slate-500">Enrollment</span>
+                    <span class="text-slate-300 font-mono" id="stuEnroll">2023001</span>
+                </div>
+                <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-slate-500">Program</span>
+                    <span class="text-slate-300" id="stuProgram">BCA</span>
+                </div>
+                <div class="flex justify-between border-b border-white/5 pb-2">
+                    <span class="text-slate-500">Semester</span>
+                    <span class="text-slate-300" id="stuSem">3</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Contact</span>
+                    <span class="text-slate-300" id="stuContact">9876543210</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Fee Selection Form -->
+    <div class="lg:col-span-2">
+        <form action="{{ url_for('save_student_fees') }}" method="POST" id="feeForm">
+            <input type="hidden" name="student_id" id="selectedStudentId">
+
+            <div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+                <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                    <h4 class="text-lg font-bold text-white">Select Fees to Apply</h4>
+                    <span class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">Fees applicable for this
+                        student</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-black/20 text-slate-400 text-xs uppercase tracking-wider">
+                                <th class="p-4 w-10">
+                                    <input type="checkbox"
+                                        class="w-4 h-4 rounded border-gray-600 bg-slate-700 text-indigo-600"
+                                        id="selectAll">
+                                </th>
+                                <th class="p-4">Fee Type</th>
+                                <th class="p-4">Priority</th>
+                                <th class="p-4 w-40">Due Date</th>
+                                <th class="p-4 w-32">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for fee in fee_headers %}
+                            {% if fee.status %}
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="p-4">
+                                    <input type="checkbox" name="fee_ids" value="{{ fee.id }}"
+                                        class="fee-checkbox w-4 h-4 rounded border-gray-600 bg-slate-700 text-indigo-600 focus:ring-indigo-500">
+                                </td>
+                                <td class="p-4 text-sm font-medium text-white">
+                                    {{ fee.name }}
+                                    <div class="text-[10px] text-slate-500">{{ fee.applicable_for }} | {{
+                                        fee.admission_type }}</div>
+                                </td>
+                                <td class="p-4 text-xs text-slate-400">{{ fee.priority }}</td>
+                                <td class="p-4">
+                                    <input type="date" name="due_date_{{ fee.id }}"
+                                        value="{{ fee.due_date.strftime('%Y-%m-%d') if fee.due_date else '' }}"
+                                        class="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white w-full focus:border-indigo-500">
+                                </td>
+                                <td class="p-4">
+                                    <input type="number" step="0.01" name="amount_{{ fee.id }}"
+                                        value="{{ '%.2f'|format(fee.amount) }}"
+                                        class="bg-slate-900 border border-white/10 rounded px-2 py-1 text-xs text-white w-full text-right focus:border-indigo-500">
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-6 border-t border-white/5 flex justify-end">
+                    <button type="submit"
+                        class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i> Apply Selected Fees
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('studentSearch');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+    const studentDetails = document.getElementById('studentDetails');
+    const selectedStudentId = document.getElementById('selectedStudentId');
+
+    // Debounce function
+    function debounce(func, timeout = 300) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+
+    // Search API call
+    const performSearch = async () => {
+        const query = searchInput.value;
+        if (query.length < 2) {
+            suggestionsBox.classList.add('hidden');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/search_users?q=${query}&role=student`);
+            const data = await res.json();
+
+            suggestionsBox.innerHTML = '';
+
+            if (data.length > 0) {
+                suggestionsBox.classList.remove('hidden');
+                data.forEach(user => {
+                    const el = document.createElement('div');
+                    el.className = 'p-3 hover:bg-indigo-500/20 cursor-pointer transition border-b border-white/5 last:border-0 flex items-center gap-3';
+                    el.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-400">${user.full_name[0]}</div>
+                        <div>
+                            <div class="text-sm font-bold text-white">${user.full_name}</div>
+                            <div class="text-xs text-slate-400">ID: ${user.username}</div>
+                        </div>
+                    `;
+                    el.onclick = () => selectStudent(user);
+                    suggestionsBox.appendChild(el);
+                });
+            } else {
+                suggestionsBox.classList.add('hidden');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    searchInput.addEventListener('input', debounce(performSearch));
+
+    function selectStudent(user) {
+        selectedStudentId.value = user.id;
+
+        // Update Details View
+        document.getElementById('stuInitials').innerText = user.full_name[0];
+        document.getElementById('stuName').innerText = user.full_name;
+        document.getElementById('stuId').innerText = 'ID: ' + user.username;
+        document.getElementById('stuEnroll').innerText = user.enrollment_number || 'N/A';
+        document.getElementById('stuProgram').innerText = user.program || 'N/A';
+        document.getElementById('stuSem').innerText = user.semester || '-';
+        document.getElementById('stuContact').innerText = user.contact_number || '-';
+
+        studentDetails.classList.remove('hidden');
+        suggestionsBox.classList.add('hidden');
+        searchInput.value = ''; // Clear search
+    }
+
+    // Select All Logic
+    document.getElementById('selectAll').addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('.fee-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+    // Form Validation
+    document.getElementById('feeForm').addEventListener('submit', function (e) {
+        if (!selectedStudentId.value) {
+            e.preventDefault();
+            alert('Please select a student first.');
+            return;
+        }
+
+        const checked = document.querySelectorAll('.fee-checkbox:checked');
+        if (checked.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one fee to apply.');
+            return;
+        }
+    });
+</script>
+{% endblock %}

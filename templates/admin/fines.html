@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Fine Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <form class="flex w-full md:w-auto gap-2 glass px-2 py-1.5 rounded-xl border border-white/10"
+        action="{{ url_for('fine_list') }}" method="GET">
+        <input type="text" name="q" value="{{ search }}"
+            class="bg-transparent border-0 text-white placeholder-slate-500 focus:ring-0 px-3 py-2 w-[250px]"
+            placeholder="Search student name or ID...">
+        <button type="submit"
+            class="w-10 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 transition flex items-center justify-center">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+
+<div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-slate-400 text-[10px] uppercase tracking-wider">
+                    <th class="py-3 px-4 font-bold">Student Details</th>
+                    <th class="py-3 px-4 font-bold">Book Title</th>
+                    <th class="py-3 px-4 font-bold">Fine Amount</th>
+                    <th class="py-3 px-4 font-bold">Status</th>
+                    <th class="py-3 px-4 font-bold text-center">Paid Date</th>
+                    <th class="py-3 px-4 font-bold text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for fine in fines.items %}
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="py-2 px-4">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-700/50 flex flex-shrink-0 items-center justify-center text-slate-400 group-hover:bg-red-500/20 group-hover:text-red-400 transition font-bold text-[10px]">
+                                {{ fine.issue.student.full_name[0] }}
+                            </div>
+                            <div>
+                                <h6 class="font-bold text-sm text-gray-200 mb-0 group-hover:text-red-300 transition">
+                                    {{ fine.issue.student.full_name }}
+                                </h6>
+                                <span class="text-[10px] text-slate-500 font-mono">@{{ fine.issue.student.username
+                                    }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-2 px-4">
+                        <div class="text-[11px] text-slate-300">{{ fine.issue.book.title }}</div>
+                        <div class="text-[9px] text-slate-500 font-mono">ISBN: {{ fine.issue.book.isbn }}</div>
+                    </td>
+                    <td class="py-2 px-4 font-bold text-sm text-white">
+                        &#8377;{{ "%.2f"|format(fine.amount) }}
+                    </td>
+                    <td class="py-2 px-4">
+                        {% if fine.paid %}
+                        <span
+                            class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 flex w-fit items-center gap-1">
+                            <i class="fas fa-check-circle"></i> PAID
+                        </span>
+                        {% else %}
+                        <span
+                            class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 flex w-fit items-center gap-1">
+                            <i class="fas fa-clock"></i> PENDING
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-4 text-center text-[10px] text-slate-500">
+                        {{ fine.paid_date.strftime('%Y-%m-%d') if fine.paid_date else '---' }}
+                    </td>
+                    <td class="py-2 px-4 text-right">
+                        {% if not fine.paid %}
+                        <form action="{{ url_for('pay_fine', fine_id=fine.id) }}" method="POST" class="inline">
+                            <button type="submit"
+                                class="px-3 py-1.5 rounded-lg bg-green-600 text-white text-[10px] font-bold hover:bg-green-700 transition shadow-lg shadow-green-600/20">
+                                Collect Fine
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="text-[10px] text-slate-500 italic"><i class="fas fa-receipt mr-1"></i> Settled</div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center text-slate-500">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-coins text-3xl mb-3 opacity-20"></i>
+                            <p>No fines found record.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="p-4 border-t border-white/5 flex justify-between items-center bg-white/5">
+        <span class="text-xs text-slate-500">Showing page <span class="text-white font-bold">{{ fines.page }}</span> of
+            {{ fines.pages }}</span>
+        <div class="flex gap-2">
+            {% if fines.has_prev %}
+            <a href="{{ url_for('fine_list', page=fines.prev_num, q=search) }}"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-white hover:text-slate-900 transition">Previous</a>
+            {% endif %}
+            {% if fines.has_next %}
+            <a href="{{ url_for('fine_list', page=fines.next_num, q=search) }}"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 text-xs font-bold hover:bg-white hover:text-slate-900 transition">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

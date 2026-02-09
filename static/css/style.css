@@ -1,0 +1,275 @@
+/* 
+   LibraTech ERP - Main Stylesheet 
+   Theme: Modern, Minimal, Soft Shadows, Pastel Accents
+*/
+
+:root {
+    --primary-color: #6366f1;
+    /* Indigo */
+    --secondary-color: #a8a29e;
+    /* Stone */
+    --success-color: #10b981;
+    /* Emerald */
+    --danger-color: #ef4444;
+    /* Red */
+    --warning-color: #f59e0b;
+    /* Amber */
+    --info-color: #3b82f6;
+    /* Blue */
+    --light-bg: #f3f4f6;
+    /* Cool Gray 100 */
+    --card-bg: #ffffff;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --sidebar-width: 260px;
+    --header-height: 70px;
+    --radius: 12px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: #111827;
+}
+
+/* Utilities */
+.shadow-soft {
+    box-shadow: var(--shadow-md);
+}
+
+.rounded-custom {
+    border-radius: var(--radius);
+}
+
+.text-primary-custom {
+    color: var(--primary-color);
+}
+
+.bg-primary-custom {
+    background-color: var(--primary-color);
+}
+
+/* Layout - Dashboard */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 50;
+    transition: all 0.3s ease;
+}
+
+.sidebar-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.brand-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary-color);
+    background-color: #f5f3ff;
+    border-left-color: var(--primary-color);
+}
+
+.nav-link i {
+    width: 24px;
+    margin-right: 10px;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    padding-top: calc(var(--header-height) + 2rem);
+}
+
+/* Top Navbar */
+.top-navbar {
+    height: var(--header-height);
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e5e7eb;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--sidebar-width);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+}
+
+/* Cards */
+.card-stat {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    border: 1px solid #f3f4f6;
+    transition: transform 0.2s;
+}
+
+.card-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.icon-purple {
+    background-color: #e0e7ff;
+    color: #6366f1;
+}
+
+.icon-green {
+    background-color: #d1fae5;
+    color: #10b981;
+}
+
+.icon-blue {
+    background-color: #dbeafe;
+    color: #3b82f6;
+}
+
+.icon-red {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+/* Tables */
+.table-custom {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-custom th {
+    background-color: #f9fafb;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table-custom td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.table-custom tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badge */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Wrapper for Login */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.auth-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .top-navbar {
+        left: 0;
+    }
+}
