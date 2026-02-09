@@ -245,24 +245,33 @@ libratech/
 Modern, animated landing page with glassmorphism design and smooth scrolling.
 
 ### Admin Dashboard
-![Admin Dashboard](screenshots/admin-dashboard.png)
+![Admin Dashboard](screenshots/admin-dashboard.jpeg)
 Comprehensive analytics with interactive charts and real-time statistics.
 
 ### Book Catalog
-![Book Catalog](screenshots/book-catalog.png)
+![Book Catalog](screenshots/book-catalog.jpeg)
 Beautiful book catalog with cover images, search, and filtering capabilities.
 
 ### Issued Books Tracker
-![Issued Books Tracker](screenshots/issued-books.png)
+![Issued Books Tracker](screenshots/issued-books.jpeg)
 Track all issued books with days issued, due dates, and overdue status.
 
 ### Student Management
-![Student Management](screenshots/student-management.png)
+![Student Management](screenshots/student-management.jpeg)
 Manage students with profile pictures, enrollment details, and bulk operations.
 
-### Fee Management
-![Fee Management](screenshots/fee-management.png)
-Complete fee management system with collection, receipts, and bulk operations.
+### Fee Collection
+![Fee Collections](screenshots/fee-collection.jpeg)
+Centralized fee management system to track and collect student payments efficiently.
+Admins can view pending, paid, and overdue fees with detailed payment history.
+
+### Fee apply
+![Fee Apply](screenshots/fee-apply.jpeg)
+Easily assign and manage fee structures for individual students or in bulk.
+
+### Fee receipt
+![Fee Receipt](screenshots/fee-receipt.jpeg)
+Generate detailed fee receipts for students with payment history and due amounts.
 
 ---
 
