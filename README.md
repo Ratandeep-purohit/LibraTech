@@ -241,21 +241,27 @@ libratech/
 ## 📸 Screenshots
 
 ### Landing Page
+![Landing Page](screenshots/landing.jpeg)
 Modern, animated landing page with glassmorphism design and smooth scrolling.
 
 ### Admin Dashboard
+![Admin Dashboard](screenshots/admin-dashboard.png)
 Comprehensive analytics with interactive charts and real-time statistics.
 
 ### Book Catalog
+![Book Catalog](screenshots/book-catalog.png)
 Beautiful book catalog with cover images, search, and filtering capabilities.
 
 ### Issued Books Tracker
+![Issued Books Tracker](screenshots/issued-books.png)
 Track all issued books with days issued, due dates, and overdue status.
 
 ### Student Management
+![Student Management](screenshots/student-management.png)
 Manage students with profile pictures, enrollment details, and bulk operations.
 
 ### Fee Management
+![Fee Management](screenshots/fee-management.png)
 Complete fee management system with collection, receipts, and bulk operations.
 
 ---
