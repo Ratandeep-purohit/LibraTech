@@ -3,191 +3,321 @@
 {% block page_title %}Library Intelligence & Analytics{% endblock %}
 
 {% block dashboard_content %}
+
+<!-- Time Range Filter Bar -->
+<div class="glass-card p-4 rounded-2xl border border-white/5 mb-8 flex flex-wrap items-center gap-3">
+    <span class="text-sm font-semibold text-slate-300 mr-2">
+        <i class="fas fa-filter text-indigo-400 mr-1.5"></i> Filter Range:
+    </span>
+    <div class="flex gap-2 flex-wrap" id="range-btns">
+        <button class="range-btn active" data-range="30d">Last 30 Days</button>
+        <button class="range-btn" data-range="7d">Last 7 Days</button>
+        <button class="range-btn" data-range="15d">Last 15 Days</button>
+        <button class="range-btn" data-range="6m">6 Months</button>
+        <button class="range-btn" data-range="1y">1 Year</button>
+    </div>
+    <div class="ml-auto">
+        <span id="loading-indicator" class="text-xs text-slate-500 hidden">
+            <i class="fas fa-circle-notch fa-spin mr-1 text-indigo-400"></i> Loading...
+        </span>
+    </div>
+</div>
+
+<!-- 4 Charts Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
     <!-- Chart 1: Issue Trends -->
-    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col h-full">
-        <h4 class="text-sm font-bold text-white mb-6 flex items-center gap-2">
-            <i class="fas fa-chart-line text-indigo-400"></i> Monthly Borrowing Trends
+    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col">
+        <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <i class="fas fa-chart-line text-xs"></i>
+            </span>
+            Monthly Borrowing Trends
         </h4>
-        <div class="flex-grow flex items-center justify-center min-h-[250px] w-full">
+        <p class="text-xs text-slate-500 mb-4 ml-10">Books issued over selected period</p>
+        <div class="flex-grow relative" style="min-height:240px;">
             <canvas id="issueTrendChart"></canvas>
         </div>
     </div>
 
     <!-- Chart 2: Category Distribution -->
-    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col h-full">
-        <h4 class="text-sm font-bold text-white mb-6 flex items-center gap-2">
-            <i class="fas fa-chart-pie text-emerald-400"></i> Books by Category
+    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col">
+        <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <i class="fas fa-chart-pie text-xs"></i>
+            </span>
+            Books by Category
         </h4>
-        <div class="flex-grow flex items-center justify-center min-h-[250px] w-full">
+        <p class="text-xs text-slate-500 mb-4 ml-10">Distribution across genres</p>
+        <div class="flex-grow relative" style="min-height:240px;">
             <canvas id="categoryChart"></canvas>
         </div>
     </div>
 
     <!-- Chart 3: Top Borrowers -->
-    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col h-full">
-        <h4 class="text-sm font-bold text-white mb-6 flex items-center gap-2">
-            <i class="fas fa-medal text-amber-400"></i> Top Student Borrowers
+    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col">
+        <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                <i class="fas fa-medal text-xs"></i>
+            </span>
+            Top Student Borrowers
         </h4>
-        <div class="flex-grow flex items-center justify-center min-h-[250px] w-full">
+        <p class="text-xs text-slate-500 mb-4 ml-10">Most active readers</p>
+        <div class="flex-grow relative" style="min-height:240px;">
             <canvas id="borrowerChart"></canvas>
         </div>
     </div>
 
     <!-- Chart 4: Fee Status -->
-    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col h-full">
-        <h4 class="text-sm font-bold text-white mb-6 flex items-center gap-2">
-            <i class="fas fa-wallet text-orange-400"></i> Fee Collection Progress
+    <div class="glass-card p-6 rounded-2xl border border-white/5 flex flex-col">
+        <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
+                <i class="fas fa-wallet text-xs"></i>
+            </span>
+            Fee Collection Status
         </h4>
-        <div class="flex-grow flex items-center justify-center min-h-[250px] w-full">
+        <p class="text-xs text-slate-500 mb-4 ml-10">Paid / Pending / Partial breakdown</p>
+        <div class="flex-grow relative" style="min-height:240px;">
             <canvas id="feeChart"></canvas>
         </div>
     </div>
+
 </div>
 
-<div class="glass-card p-8 rounded-2xl border border-white/10 relative overflow-hidden">
-    <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl"></div>
-    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+<!-- Export Actions -->
+<div class="glass-card p-6 rounded-2xl border border-white/10 relative overflow-hidden">
+    <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-            <h3 class="text-xl font-bold text-white mb-2">Detailed Monthly Reports</h3>
-            <p class="text-slate-400 text-sm">Download comprehensive PDF/Excel reports of all library activities for the
-                current academic session.</p>
+            <h3 class="text-lg font-bold text-white mb-1">Export Detailed Reports</h3>
+            <p class="text-slate-400 text-sm">Download comprehensive reports of all library activities for the current session.</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-3 flex-wrap">
             <a href="{{ url_for('export_graphical_report') }}"
-                class="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 shadow-lg shadow-purple-600/20 transition flex items-center gap-2">
+                class="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 shadow-lg shadow-purple-600/20 transition flex items-center gap-2">
                 <i class="fas fa-chart-area"></i> Graphical Report
             </a>
-            <button
-                class="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition flex items-center gap-2">
-                <i class="fas fa-file-pdf"></i> Export PDF
-            </button>
             <a href="{{ url_for('export_analytics_excel') }}"
-                class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
+                class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition flex items-center gap-2">
                 <i class="fas fa-file-excel"></i> Export Excel
             </a>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .range-btn {
+        padding: 0.35rem 0.85rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .range-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .range-btn.active { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.4); color: #a5b4fc; }
+    html.light-mode .range-btn { color: #475569; border-color: #e2e8f0; }
+    html.light-mode .range-btn:hover { background: #f8fafc; color: #1e293b; }
+    html.light-mode .range-btn.active { background: rgba(79,70,229,0.1); border-color: #6366f1; color: #4f46e5; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Chart.js is already loaded in base.html
+    let charts = {};
+
     document.addEventListener('DOMContentLoaded', function () {
         const isLight = document.documentElement.classList.contains('light-mode');
 
         Chart.defaults.color = isLight ? '#4b5563' : '#94a3b8';
-        Chart.defaults.borderColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
-        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.borderColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+        Chart.defaults.font.family = "'Outfit', sans-serif";
 
-        fetch('/analytics/data')
-            .then(res => res.json())
-            .then(data => {
-                // 1. Issue Trends Chart
-                new Chart(document.getElementById('issueTrendChart'), {
-                    type: 'line',
-                    data: {
-                        labels: data.monthly_issues.labels,
-                        datasets: [{
-                            label: 'Issues',
-                            data: data.monthly_issues.values,
-                            borderColor: '#6366f1',
-                            backgroundColor: isLight ? 'rgba(99, 102, 241, 0.05)' : 'rgba(129, 140, 248, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#6366f1'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { grid: { color: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)' } },
-                            x: { grid: { display: false } }
-                        }
-                    }
-                });
-
-                // 2. Category Distribution Chart
-                new Chart(document.getElementById('categoryChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: data.categories.labels,
-                        datasets: [{
-                            data: data.categories.values,
-                            backgroundColor: [
-                                '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'
-                            ],
-                            borderWidth: isLight ? 2 : 0,
-                            borderColor: isLight ? '#ffffff' : 'transparent',
-                            hoverOffset: 20
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, color: isLight ? '#1f2937' : '#94a3b8' } } }
-                    }
-                });
-
-                // 3. Top Borrowers Chart
-                new Chart(document.getElementById('borrowerChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: data.top_students.labels,
-                        datasets: [{
-                            label: 'Total Issues',
-                            data: data.top_students.values,
-                            backgroundColor: isLight ? 'rgba(79, 70, 229, 0.8)' : 'rgba(245, 158, 11, 0.6)',
-                            borderRadius: 8,
-                            hoverBackgroundColor: '#4f46e5'
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                grid: { color: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)' }
-                            },
-                            y: {
-                                grid: { display: false }
-                            }
-                        }
-                    }
-                });
-
-                // 4. Fee Collection progress
-                new Chart(document.getElementById('feeChart'), {
-                    type: 'polarArea',
-                    data: {
-                        labels: data.fees.labels,
-                        datasets: [{
-                            data: data.fees.values,
-                            backgroundColor: [
-                                'rgba(239, 68, 68, 0.5)',
-                                'rgba(16, 185, 129, 0.5)',
-                                'rgba(245, 158, 11, 0.5)'
-                            ],
-                            borderColor: isLight ? '#ffffff' : 'transparent'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, color: isLight ? '#1f2937' : '#94a3b8' } } },
-                        scales: { r: { ticks: { display: false }, grid: { color: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)' } } }
-                    }
-                });
+        // Time range buttons
+        document.querySelectorAll('.range-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                loadData(this.getAttribute('data-range'));
             });
+        });
+
+        loadData('30d');
     });
+
+    function loadData(range) {
+        const indicator = document.getElementById('loading-indicator');
+        indicator.classList.remove('hidden');
+
+        fetch(`/analytics/data?range=${range}`)
+            .then(res => {
+                if (!res.ok) throw new Error('API error');
+                return res.json();
+            })
+            .then(data => {
+                indicator.classList.add('hidden');
+                renderCharts(data);
+            })
+            .catch(err => {
+                indicator.classList.add('hidden');
+                console.error('Analytics load failed:', err);
+            });
+    }
+
+    function renderCharts(data) {
+        const isLight = document.documentElement.classList.contains('light-mode');
+        const gridColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+        const palette = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+
+        // Destroy existing charts
+        Object.values(charts).forEach(c => { if (c) c.destroy(); });
+        charts = {};
+
+        // 1. Issue Trends Chart
+        if (data.monthly_issues) {
+            charts.issue = new Chart(document.getElementById('issueTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: data.monthly_issues.labels,
+                    datasets: [{
+                        label: 'Books Issued',
+                        data: data.monthly_issues.values,
+                        borderColor: '#6366f1',
+                        backgroundColor: isLight ? 'rgba(99,102,241,0.06)' : 'rgba(99,102,241,0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2.5,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: isLight ? '#fff' : '#0f172a',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 2. Category Distribution Chart
+        if (data.categories && data.categories.labels.length > 0) {
+            charts.category = new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.categories.labels,
+                    datasets: [{
+                        data: data.categories.values,
+                        backgroundColor: palette,
+                        borderWidth: isLight ? 2 : 1,
+                        borderColor: isLight ? '#ffffff' : 'rgba(15,23,42,0.8)',
+                        hoverOffset: 16
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 10, padding: 12, color: isLight ? '#374151' : '#94a3b8', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        } else {
+            showEmpty('categoryChart', 'No category data yet');
+        }
+
+        // 3. Top Borrowers Chart
+        if (data.top_students && data.top_students.labels.length > 0) {
+            charts.borrower = new Chart(document.getElementById('borrowerChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.top_students.labels,
+                    datasets: [{
+                        label: 'Total Issues',
+                        data: data.top_students.values,
+                        backgroundColor: isLight ? 'rgba(245,158,11,0.7)' : 'rgba(245,158,11,0.55)',
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        hoverBackgroundColor: '#f59e0b'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: gridColor }, ticks: { precision: 0 } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        } else {
+            showEmpty('borrowerChart', 'No borrower data yet');
+        }
+
+        // 4. Fee Status Chart
+        if (data.fees && data.fees.labels.length > 0) {
+            const feeColors = {
+                'Paid':    'rgba(16,185,129,0.6)',
+                'Pending': 'rgba(239,68,68,0.55)',
+                'Partial': 'rgba(245,158,11,0.55)',
+                'No Data': 'rgba(148,163,184,0.4)'
+            };
+            charts.fee = new Chart(document.getElementById('feeChart'), {
+                type: 'polarArea',
+                data: {
+                    labels: data.fees.labels,
+                    datasets: [{
+                        data: data.fees.values,
+                        backgroundColor: data.fees.labels.map(l => feeColors[l] || 'rgba(99,102,241,0.5)'),
+                        borderColor: isLight ? '#fff' : 'rgba(15,23,42,0.5)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 10, padding: 14, color: isLight ? '#374151' : '#94a3b8', font: { size: 11 } }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            ticks: { display: false },
+                            grid: { color: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        } else {
+            showEmpty('feeChart', 'No fee data yet');
+        }
+    }
+
+    function showEmpty(canvasId, message) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const parent = canvas.parentElement;
+        canvas.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-center h-full text-slate-500 text-sm';
+        div.innerHTML = `<i class="fas fa-chart-area mr-2 opacity-40"></i> ${message}`;
+        parent.appendChild(div);
+    }
 </script>
 {% endblock %}

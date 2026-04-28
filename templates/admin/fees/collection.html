@@ -62,7 +62,9 @@
     <div id="studentQuickInfo" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="glass-card p-4 rounded-xl border border-white/5 bg-indigo-500/5">
             <p class="text-[10px] font-bold text-slate-500 uppercase">Student Name</p>
-            <p class="text-sm font-bold text-white" id="infoName">-</p>
+            <a id="infoProfileLink" href="#" class="hover:text-indigo-400 transition block">
+                <p class="text-sm font-bold text-white" id="infoName">-</p>
+            </a>
         </div>
         <div class="glass-card p-4 rounded-xl border border-white/5 bg-indigo-500/5">
             <p class="text-[10px] font-bold text-slate-500 uppercase">Enrollment / GR</p>
@@ -285,6 +287,7 @@
         // Update Quick Info
         document.getElementById('studentQuickInfo').classList.remove('hidden');
         document.getElementById('infoName').innerText = data.student.full_name;
+        document.getElementById('infoProfileLink').href = `/admin/student/view/${currentStudentId}`;
         document.getElementById('infoEnroll').innerText = data.student.enrollment_number || 'N/A';
         document.getElementById('infoProg').innerText = `${data.student.program || 'N/A'} (Sem: ${data.student.semester || '-'})`;
 

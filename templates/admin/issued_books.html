@@ -58,9 +58,11 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <h6 class="font-bold text-sm text-gray-200 mb-0 group-hover:text-indigo-300 transition">
-                                    {{ issue.book.title }}
-                                </h6>
+                                <a href="{{ url_for('book_view', book_id=issue.book.id) }}" class="hover:text-indigo-400 transition">
+                                    <h6 class="font-bold text-sm text-gray-200 mb-0 transition">
+                                        {{ issue.book.title }}
+                                    </h6>
+                                </a>
                                 <span class="text-[10px] text-slate-500 font-mono">ISBN: {{ issue.book.isbn }}</span>
                                 <div class="text-[10px] text-slate-600">{{ issue.book.author.name }}</div>
                             </div>
@@ -79,7 +81,9 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <div class="font-bold text-sm text-slate-200">{{ issue.student.full_name }}</div>
+                                <a href="{{ url_for('student_view', user_id=issue.student.id) }}" class="hover:text-indigo-400 transition">
+                                    <div class="font-bold text-sm text-slate-200">{{ issue.student.full_name }}</div>
+                                </a>
                                 <div class="text-[10px] text-slate-500 font-mono">@{{ issue.student.username }}</div>
                             </div>
                         </div>

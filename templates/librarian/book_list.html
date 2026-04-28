@@ -64,9 +64,11 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <h6 class="font-bold text-sm text-gray-200 mb-0 group-hover:text-indigo-300 transition">
-                                    {{
-                                    book.title }}</h6>
+                                <a href="{{ url_for('book_view', book_id=book.id) }}" class="block">
+                                    <h6 class="font-bold text-sm text-gray-200 mb-0 hover:text-indigo-400 transition cursor-pointer">
+                                        {{ book.title }}
+                                    </h6>
+                                </a>
                                 <span class="text-[10px] text-slate-400 uppercase tracking-tighter font-semibold">by {{
                                     book.author.name }}</span>
                             </div>

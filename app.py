@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import os
 from werkzeug.utils import secure_filename
@@ -42,7 +42,8 @@ login_manager.login_view = 'login'
 
 @app.context_processor
 def inject_now():
-    return {'now': datetime.utcnow()} # Useful for templates
+    # Return naive UTC datetime for compatibility with naive DB columns
+    return {'now': datetime.now(timezone.utc).replace(tzinfo=None)} 
 
 class UserWrapper(UserMixin):
     def __init__(self, user_model):
@@ -50,6 +51,14 @@ class UserWrapper(UserMixin):
         self.user_model = user_model
         self.role = user_model.role.value
         self.full_name = user_model.full_name
+        self.username = user_model.username
+        self.profile_picture = user_model.profile_picture
+        self.email = user_model.email
+        self.contact_number = getattr(user_model, 'contact_number', None)
+        self.address = getattr(user_model, 'address', None)
+        self.enrollment_number = getattr(user_model, 'enrollment_number', None)
+        self.semester = getattr(user_model, 'semester', None)
+        self.program = getattr(user_model, 'program', None)
 
     def get_id(self):
         return str(self.id)
@@ -157,28 +166,30 @@ def register():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    user = User.query.get(int(current_user.id))
     if request.method == 'POST':
         try:
-            current_user.full_name = request.form.get('full_name')
-            current_user.email = request.form.get('email')
-            current_user.contact_number = request.form.get('contact_number')
-            current_user.address = request.form.get('address')
+            user.full_name = request.form.get('full_name', user.full_name)
+            user.email = request.form.get('email', user.email)
+            user.contact_number = request.form.get('contact_number', user.contact_number)
+            user.address = request.form.get('address', user.address)
             
             # Update Profile Picture
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(f"{current_user.username}_{file.filename}")
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(f"{user.username}_{file.filename}")
                     file.save(os.path.join(app.config['USER_UPLOAD_FOLDER'], filename))
-                    current_user.profile_picture = filename
+                    user.profile_picture = filename
                     
             db.session.commit()
             flash('Profile updated successfully!', 'success')
+            return redirect(url_for('profile'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating profile: {str(e)}', 'danger')
             
-    return render_template('profile.html')
+    return render_template('profile.html', user=user)
 
 # --- DASHBOARD & COMMON ROUTES ---
 
@@ -221,8 +232,8 @@ def admin_dashboard():
 @login_required
 @role_required(['librarian', 'admin'])
 def librarian_dashboard():
-    due_today = Issue.query.filter(db.func.date(Issue.due_date) == datetime.utcnow().date(), Issue.status == 'issued').count()
-    pending_returns = Issue.query.filter(Issue.due_date < datetime.utcnow(), Issue.status == 'issued').count()
+    due_today = Issue.query.filter(db.func.date(Issue.due_date) == datetime.now(timezone.utc).replace(tzinfo=None).date(), Issue.status == 'issued').count()
+    pending_returns = Issue.query.filter(Issue.due_date < datetime.now(timezone.utc).replace(tzinfo=None), Issue.status == 'issued').count()
     return render_template('librarian/dashboard.html', due_today=due_today, pending_returns=pending_returns)
 
 @app.route('/admin/add_student', methods=['GET', 'POST'])
@@ -244,7 +255,7 @@ def add_student():
             program = request.form.get('program')
             # Joining date
             joining_date_str = request.form.get('joining_date')
-            joining_date = datetime.strptime(joining_date_str, '%Y-%m-%d') if joining_date_str else datetime.utcnow()
+            joining_date = datetime.strptime(joining_date_str, '%Y-%m-%d') if joining_date_str else datetime.now(timezone.utc).replace(tzinfo=None)
 
             # Handling Profile Picture
             profile_picture = 'default_user.jpg'
@@ -603,7 +614,7 @@ def add_book():
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
                     # Unique filename
-                    unique_filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{filename}"
+                    unique_filename = f"{datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y%m%d%H%M%S')}_{filename}"
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
                     cover_image = unique_filename
 
@@ -642,7 +653,7 @@ def edit_book(book_id):
                 file = request.files['book_image']
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    unique_filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{filename}"
+                    unique_filename = f"{datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y%m%d%H%M%S')}_{filename}"
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
                     book.cover_image = unique_filename
 
@@ -966,7 +977,7 @@ def issue_book():
         new_issue = Issue(
             user_id=student.id,
             book_id=book.id,
-            due_date=datetime.utcnow() + timedelta(days=14), # 2 weeks default
+            due_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=14), # 2 weeks default
             status='issued'
         )
         book.available_copies -= 1
@@ -999,7 +1010,7 @@ def issued_books():
     
     issues = query.order_by(Issue.issue_date.desc()).paginate(page=page, per_page=20, error_out=False)
     
-    return render_template('admin/issued_books.html', issues=issues, search=search, now=datetime.utcnow())
+    return render_template('admin/issued_books.html', issues=issues, search=search, now=datetime.now(timezone.utc).replace(tzinfo=None))
 
 @app.route('/issued-books/export')
 @login_required
@@ -1040,7 +1051,7 @@ def export_issued_books():
         cell.border = border
     
     # Data rows
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     for row_num, issue in enumerate(issues, 2):
         days_issued = (now - issue.issue_date).days
         days_until_due = (issue.due_date - now).days
@@ -1126,7 +1137,7 @@ def return_book_process(issue_id):
         flash('Book already returned.', 'warning')
         return redirect(url_for('librarian_dashboard'))
         
-    issue.return_date = datetime.utcnow()
+    issue.return_date = datetime.now(timezone.utc).replace(tzinfo=None)
     issue.status = 'returned'
     issue.book.available_copies += 1
     
@@ -1204,6 +1215,15 @@ def analytics_data():
     total_copies = db.session.query(db.func.sum(Book.total_copies)).scalar() or 0
     issued_count = total_copies - available_books
 
+    # Fee status distribution for analytics (Paid / Pending / Partial)
+    fee_status_data = db.session.query(StudentFee.status, db.func.count(StudentFee.id)).group_by(StudentFee.status).all()
+    fee_labels = [x[0] for x in fee_status_data]
+    fee_values = [x[1] for x in fee_status_data]
+    # Fallback if no data
+    if not fee_labels:
+        fee_labels = ['No Data']
+        fee_values = [1]
+
     import calendar
     month_names = {i: name for i, name in enumerate(calendar.month_abbr) if i > 0}
 
@@ -1226,7 +1246,8 @@ def analytics_data():
         'monthly_fines': {'labels': format_labels(fines), 'values': [float(x[1] or 0) for x in fines]},
         'categories': {'labels': [x[0] for x in cat_distribution], 'values': [x[1] for x in cat_distribution]},
         'top_students': {'labels': [x[0] for x in top_borrowers], 'values': [x[1] for x in top_borrowers]},
-        'book_status': {'labels': ['Available', 'Issued'], 'values': [int(available_books), int(issued_count)]}
+        'book_status': {'labels': ['Available', 'Issued'], 'values': [int(available_books), int(issued_count)]},
+        'fees': {'labels': fee_labels, 'values': fee_values}
     })
 
 @app.route('/admin/export/analytics')
@@ -1367,7 +1388,7 @@ def pay_fine(fine_id):
         flash('Fine already paid.', 'info')
     else:
         fine.paid = True
-        fine.paid_date = datetime.utcnow()
+        fine.paid_date = datetime.now(timezone.utc).replace(tzinfo=None)
         db.session.commit()
         flash(f'Fine of {fine.amount} marked as paid.', 'success')
     return redirect(url_for('fine_list'))
@@ -1628,7 +1649,7 @@ def bulk_import_fees():
 @login_required
 @role_required(['admin'])
 def fee_collection():
-    return render_template('admin/fees/collection.html', now=datetime.utcnow())
+    return render_template('admin/fees/collection.html', now=datetime.now(timezone.utc).replace(tzinfo=None))
 
 @app.route('/api/student_fee_data/<int:student_id>')
 @login_required
@@ -1717,12 +1738,12 @@ def collect_payment():
 
     try:
         # Generate Voucher Number
-        year = datetime.utcnow().year
+        year = datetime.now(timezone.utc).replace(tzinfo=None).year
         last_coll = FeeCollection.query.order_by(FeeCollection.id.desc()).first()
         next_id = (last_coll.id + 1) if last_coll else 1
         voucher_no = f"VCH-{year}-{next_id:04d}"
         
-        receipt_date = datetime.strptime(receipt_date_str, '%Y-%m-%d') if receipt_date_str else datetime.utcnow()
+        receipt_date = datetime.strptime(receipt_date_str, '%Y-%m-%d') if receipt_date_str else datetime.now(timezone.utc).replace(tzinfo=None)
 
         collection = FeeCollection(
             voucher_no=voucher_no,
@@ -1768,6 +1789,127 @@ def collect_payment():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/admin/fees/report')
+@login_required
+@role_required(['admin'])
+def fee_collection_report():
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    if not start_date_str:
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        
+    if not end_date_str:
+        end_date = now
+    else:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+
+    collections = FeeCollection.query.filter(
+        FeeCollection.collection_date >= start_date,
+        FeeCollection.collection_date <= end_date
+    ).order_by(FeeCollection.collection_date.desc()).all()
+
+    # Summaries
+    summary = {
+        'total': sum(c.total_amount for c in collections),
+        'late_fees': sum(c.late_fees for c in collections),
+        'addl_charges': sum(c.additional_charges for c in collections),
+        'count': len(collections)
+    }
+    
+    # Mode breakdown
+    mode_summary = {}
+    for c in collections:
+        mode_summary[c.payment_mode] = mode_summary.get(c.payment_mode, 0) + c.total_amount
+        
+    # Header breakdown
+    header_summary = {}
+    items = FeeCollectionItem.query.join(FeeCollection).filter(
+        FeeCollection.collection_date >= start_date,
+        FeeCollection.collection_date <= end_date
+    ).all()
+    
+    for item in items:
+        h_name = item.student_fee.fee_header.name
+        header_summary[h_name] = header_summary.get(h_name, 0) + item.amount_collected
+
+    return render_template('admin/fees/report.html', 
+                          collections=collections,
+                          summary=summary,
+                          mode_summary=mode_summary,
+                          header_summary=header_summary,
+                          start_date=start_date.strftime('%Y-%m-%d'),
+                          end_date=end_date.strftime('%Y-%m-%d'))
+
+@app.route('/admin/fees/report/export')
+@login_required
+@role_required(['admin'])
+def export_fee_report():
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    if not start_date_str:
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        
+    if not end_date_str:
+        end_date = now
+    else:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+
+    collections = FeeCollection.query.filter(
+        FeeCollection.collection_date >= start_date,
+        FeeCollection.collection_date <= end_date
+    ).order_by(FeeCollection.collection_date.desc()).all()
+
+    import pandas as pd
+    import io
+    from flask import send_file
+
+    data = []
+    for c in collections:
+        fee_types = ", ".join(list(set([item.student_fee.fee_header.name for item in c.items])))
+        data.append({
+            'Voucher No': c.voucher_no,
+            'Date': c.collection_date.strftime('%Y-%m-%d %H:%M'),
+            'Student': c.student.full_name,
+            'Enrollment': c.student.enrollment_number,
+            'Fee Types': fee_types,
+            'Payment Mode': c.payment_mode,
+            'Amount Paid': c.total_amount,
+            'Late Fees': c.late_fees,
+            'Addl Charges': c.additional_charges,
+            'Reference No': c.transaction_no or '-',
+            'Remarks': c.remarks or '-'
+        })
+
+    df = pd.DataFrame(data)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Fee Collections')
+        
+        # Add summary sheet
+        summary_data = [
+            ['Total Collections', sum(c.total_amount for c in collections)],
+            ['Total Late Fees', sum(c.late_fees for c in collections)],
+            ['Total Addl Charges', sum(c.additional_charges for c in collections)],
+            ['Transaction Count', len(collections)],
+            ['Report Period', f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"]
+        ]
+        pd.DataFrame(summary_data, columns=['Metric', 'Value']).to_excel(writer, index=False, sheet_name='Summary')
+
+    output.seek(0)
+    filename = f"Fee_Collection_Report_{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}.xlsx"
+    return send_file(output, 
+                     download_name=filename, 
+                     as_attachment=True,
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 # --- BOOK REQUESTS & NOTIFICATIONS ---
 
@@ -1824,7 +1966,7 @@ def handle_book_request(request_id, action):
         new_issue = Issue(
             user_id=req.user_id,
             book_id=req.book_id,
-            due_date=datetime.utcnow() + timedelta(days=14),
+            due_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=14),
             status='issued'
         )
         req.book_obj.available_copies -= 1
@@ -1906,7 +2048,7 @@ def download_bulk_collection_template():
                 'Payable Amount': total_due, # Suggesting full payment
                 'Discount': 0,
                 'Payment Mode': 'Cash',
-                'Receipt Date': datetime.utcnow().strftime('%Y-%m-%d'),
+                'Receipt Date': datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y%m%d'),
                 'Late Fees': 0,
                 'Additional Charges': 0,
                 'Ref ID / Trans No': '',
@@ -1953,13 +2095,13 @@ def bulk_collection_import():
                 late_fees = float(row.get('Late Fees', 0))
                 add_charges = float(row.get('Additional Charges', 0))
                 mode = str(row.get('Payment Mode', 'Cash'))
-                date_str = str(row.get('Receipt Date', datetime.utcnow().strftime('%Y-%m-%d')))
+                date_str = str(row.get('Receipt Date', datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y-%m-%d')))
                 trans_no = str(row.get('Ref ID / Trans No', ''))
                 remarks = str(row.get('Remarks', 'Bulk Collection'))
                 
                 # Logic copied from collect_payment to maintain consistency
                 # 1. Generate Voucher
-                year = datetime.utcnow().year
+                year = datetime.now(timezone.utc).replace(tzinfo=None).year
                 last_coll = FeeCollection.query.order_by(FeeCollection.id.desc()).first()
                 next_id = (last_coll.id + 1) if last_coll else 1
                 voucher_no = f"VCH-{year}-{next_id:04d}"
@@ -1967,7 +2109,7 @@ def bulk_collection_import():
                 try:
                     receipt_date = datetime.strptime(date_str[:10], '%Y-%m-%d')
                 except:
-                    receipt_date = datetime.utcnow()
+                    receipt_date = datetime.now(timezone.utc).replace(tzinfo=None)
 
                 collection = FeeCollection(
                     voucher_no=voucher_no,
@@ -2024,6 +2166,48 @@ def bulk_collection_import():
             flash(f'Error importing collection: {str(e)}', 'danger')
             
     return render_template('admin/fees/bulk_collection_page.html')
+
+@app.route('/admin/student/view/<int:user_id>')
+@login_required
+@role_required(['admin', 'librarian'])
+def student_view(user_id):
+    student = User.query.get_or_404(user_id)
+    if student.role.value != 'student':
+        flash('Not a student profile.', 'warning')
+        return redirect(url_for('student_list'))
+    
+    # Get stats for this student
+    total_issued = Issue.query.filter_by(user_id=student.id).count()
+    active_issues = Issue.query.filter_by(user_id=student.id, status='issued').all()
+    total_fines = db.session.query(db.func.sum(Fine.amount)).join(Issue).filter(Issue.user_id == student.id, Fine.paid == False).scalar() or 0
+    
+    # Fee summary
+    all_fees = StudentFee.query.filter_by(student_id=student.id).all()
+    total_fees = sum(f.amount for f in all_fees)
+    paid_fees = db.session.query(db.func.sum(FeeCollectionItem.amount_collected)).join(StudentFee).filter(StudentFee.student_id == student.id).scalar() or 0
+    
+    return render_template('admin/student_profile.html', 
+                           student=student, 
+                           active_issues=active_issues, 
+                           total_issued=total_issued,
+                           total_fines=total_fines,
+                           pending_fees=total_fees - paid_fees,
+                           all_fees=all_fees)
+
+@app.route('/admin/book/view/<int:book_id>')
+@login_required
+@role_required(['admin', 'librarian'])
+def book_view(book_id):
+    book = Book.query.get_or_404(book_id)
+    
+    # Get stats for this book
+    total_issues = Issue.query.filter_by(book_id=book.id).count()
+    active_issues = Issue.query.filter_by(book_id=book.id, status='issued').all()
+    
+    return render_template('admin/book_profile.html', 
+                           book=book, 
+                           active_issues=active_issues, 
+                           total_issues=total_issues)
 
 @app.route('/api/notifications/mark_read', methods=['POST'])
 @login_required

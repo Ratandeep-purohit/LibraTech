@@ -61,9 +61,11 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <h6 class="font-bold text-sm text-gray-200 mb-0 group-hover:text-indigo-300 transition">
-                                    {{
-                                    student.full_name }}</h6>
+                                <a href="{{ url_for('student_view', user_id=student.id) }}" class="block">
+                                    <h6 class="font-bold text-sm text-gray-200 mb-0 hover:text-indigo-400 transition cursor-pointer">
+                                        {{ student.full_name }}
+                                    </h6>
+                                </a>
                                 <span class="text-[10px] text-slate-500 font-mono">@{{ student.username }}</span>
                             </div>
                         </div>

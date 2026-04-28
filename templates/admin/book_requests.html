@@ -28,11 +28,15 @@
                 {% for req in book_requests %}
                 <tr class="hover:bg-white/5 transition group">
                     <td class="p-4">
-                        <div class="font-bold text-slate-200">{{ req.student.full_name }}</div>
+                        <a href="{{ url_for('student_view', user_id=req.student.id) }}" class="hover:text-indigo-400 transition">
+                            <div class="font-bold text-slate-200">{{ req.student.full_name }}</div>
+                        </a>
                         <div class="text-xs text-slate-500">@{{ req.student.username }}</div>
                     </td>
                     <td class="p-4">
-                        <div class="font-bold text-indigo-400">{{ req.book_obj.title }}</div>
+                        <a href="{{ url_for('book_view', book_id=req.book_obj.id) }}" class="hover:text-indigo-400 transition">
+                            <div class="font-bold text-indigo-400">{{ req.book_obj.title }}</div>
+                        </a>
                         <div class="text-xs text-slate-500">ISBN: {{ req.book_obj.isbn }}</div>
                     </td>
                     <td class="p-4 text-slate-400 font-mono text-sm">{{ req.request_date.strftime('%Y-%m-%d %H:%M') }}
