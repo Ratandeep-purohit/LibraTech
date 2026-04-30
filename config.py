@@ -8,7 +8,7 @@ class Config:
     # Format: mysql+mysqlconnector://username:password@hostname/databasename
     # User must replace these credentials
     DB_USER = 'root'
-    DB_PASS = 'Rashmi I Love you so much jaan'
+    DB_PASS = 'R@j@t2004'
     DB_HOST = 'localhost'
     DB_NAME = 'library'
     

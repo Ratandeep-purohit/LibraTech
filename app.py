@@ -288,6 +288,7 @@ def add_student():
                 flash(f'Student {full_name} added successfully!', 'success')
                 return redirect(url_for('student_list'))
         except Exception as e:
+            db.session.rollback()
             flash(f'Error adding student: {str(e)}', 'danger')
             
     return render_template('admin/add_student.html')
@@ -618,16 +619,31 @@ def add_book():
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
                     cover_image = unique_filename
 
+            # Convert to integers, handle empty strings
+            pub_year = request.form.get('year')
+            pub_year = int(pub_year) if pub_year and pub_year.strip() else None
+            
+            copies = request.form.get('copies')
+            copies = int(copies) if copies and copies.strip() else 1
+
+            # Find/Create Author
+            author_name = request.form.get('author_name', 'Unknown').strip()
+            author = Author.query.filter(Author.name.ilike(author_name)).first()
+            if not author:
+                author = Author(name=author_name)
+                db.session.add(author)
+                db.session.flush() # Get the ID before committing
+
             new_book = Book(
                 title=request.form['title'],
                 isbn=request.form['isbn'],
                 category_id=request.form['category_id'],
-                author_id=request.form['author_id'],
-                publication_year=request.form['year'],
+                author_id=author.id,
+                publication_year=pub_year,
                 publisher=request.form['publisher'],
                 rack_number=request.form['rack'],
-                total_copies=request.form['copies'],
-                available_copies=request.form['copies'],
+                total_copies=copies,
+                available_copies=copies,
                 cover_image=cover_image
             )
             db.session.add(new_book)
@@ -635,11 +651,11 @@ def add_book():
             flash('Book added successfully!', 'success')
             return redirect(url_for('book_list'))
         except Exception as e:
+            db.session.rollback()
             flash(f'Error adding book: {str(e)}', 'danger')
             
     categories = Category.query.all()
-    authors = Author.query.all()
-    return render_template('librarian/book_form.html', categories=categories, authors=authors)
+    return render_template('librarian/book_form.html', categories=categories)
 
 @app.route('/books/edit/<int:book_id>', methods=['GET', 'POST'])
 @login_required
@@ -660,14 +676,26 @@ def edit_book(book_id):
             book.title = request.form['title']
             book.isbn = request.form['isbn']
             book.category_id = request.form['category_id']
-            book.author_id = request.form['author_id']
-            book.publication_year = request.form['year']
+            
+            # Find/Create Author
+            author_name = request.form.get('author_name', 'Unknown').strip()
+            author = Author.query.filter(Author.name.ilike(author_name)).first()
+            if not author:
+                author = Author(name=author_name)
+                db.session.add(author)
+                db.session.flush()
+            book.author_id = author.id
+            
+            pub_year = request.form.get('year')
+            book.publication_year = int(pub_year) if pub_year and pub_year.strip() else None
+            
             book.publisher = request.form['publisher']
             book.rack_number = request.form['rack']
             
             # Simple stock update: if total copies increase, available also increase
             old_total = book.total_copies
-            new_total = int(request.form['copies'])
+            copies_str = request.form.get('copies')
+            new_total = int(copies_str) if copies_str and copies_str.strip() else old_total
             diff = new_total - old_total
             book.total_copies = new_total
             book.available_copies += diff
@@ -680,8 +708,7 @@ def edit_book(book_id):
             flash(f'Error updating book: {str(e)}', 'danger')
 
     categories = Category.query.all()
-    authors = Author.query.all()
-    return render_template('librarian/book_form.html', book=book, categories=categories, authors=authors)
+    return render_template('librarian/book_form.html', book=book, categories=categories)
 
 @app.route('/books/delete/<int:book_id>', methods=['POST'])
 @login_required
@@ -973,20 +1000,25 @@ def issue_book():
             flash('Book not available.', 'warning')
             return redirect(url_for('issue_book'))
             
-        # Create issue
-        new_issue = Issue(
-            user_id=student.id,
-            book_id=book.id,
-            due_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=14), # 2 weeks default
-            status='issued'
-        )
-        book.available_copies -= 1
-        db.session.add(new_issue)
-        db.session.commit()
-        
-        flash(f'Book issued to {student.full_name}. Due date: {new_issue.due_date.date()}', 'success')
-        return redirect(url_for('librarian_dashboard'))
-        
+        try:
+            # Create issue
+            new_issue = Issue(
+                user_id=student.id,
+                book_id=book.id,
+                due_date=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=14), # 2 weeks default
+                status='issued'
+            )
+            book.available_copies -= 1
+            db.session.add(new_issue)
+            db.session.commit()
+            
+            flash(f'Book issued to {student.full_name}. Due date: {new_issue.due_date.date()}', 'success')
+            return redirect(url_for('librarian_dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error issuing book: {str(e)}', 'danger')
+            return redirect(url_for('issue_book'))
+            
     return render_template('librarian/issue_book.html')
 
 @app.route('/issued-books')
@@ -1137,25 +1169,30 @@ def return_book_process(issue_id):
         flash('Book already returned.', 'warning')
         return redirect(url_for('librarian_dashboard'))
         
-    issue.return_date = datetime.now(timezone.utc).replace(tzinfo=None)
-    issue.status = 'returned'
-    issue.book.available_copies += 1
-    
-    # Calculate fine logic (simplified)
-    # If returned after due date
-    if issue.return_date > issue.due_date:
-        overdue_days = (issue.return_date - issue.due_date).days
-        fine_amount = overdue_days * 5.0 # 5 currency units per day
-        if fine_amount > 0:
-            fine = Fine(amount=fine_amount, issue_id=issue.id)
-            db.session.add(fine)
-            flash(f'Book returned late! Fine: {fine_amount}', 'warning')
-        else:
-             flash('Book returned successfully.', 'success')
-    else:
-        flash('Book returned successfully.', 'success')
+    try:
+        issue.return_date = datetime.now(timezone.utc).replace(tzinfo=None)
+        issue.status = 'returned'
+        issue.book.available_copies += 1
         
-    db.session.commit()
+        # Calculate fine logic (simplified)
+        # If returned after due date
+        if issue.return_date > issue.due_date:
+            overdue_days = (issue.return_date - issue.due_date).days
+            fine_amount = overdue_days * 5.0 # 5 currency units per day
+            if fine_amount > 0:
+                fine = Fine(amount=fine_amount, issue_id=issue.id)
+                db.session.add(fine)
+                flash(f'Book returned late! Fine: {fine_amount}', 'warning')
+            else:
+                flash('Book returned successfully.', 'success')
+        else:
+            flash('Book returned successfully.', 'success')
+            
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error processing return: {str(e)}', 'danger')
+        
     return redirect(url_for('librarian_dashboard'))
 
 # --- ANALYTICS & REPORTS --- 

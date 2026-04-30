@@ -82,16 +82,10 @@
                     <!-- Author -->
                     <div>
                         <label
-                            class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Author</label>
-                        <select name="author_id"
-                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                            required>
-                            <option value="" disabled {{ 'selected' if not book }}>Select Author</option>
-                            {% for a in authors %}
-                            <option value="{{ a.id }}" {{ 'selected' if book and book.author_id==a.id }}>{{ a.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                            class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Author Name</label>
+                        <input type="text" name="author_name" value="{{ book.author.name if book else '' }}"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                            required placeholder="e.g. J.K. Rowling">
                     </div>
 
                     <!-- Publisher -->
